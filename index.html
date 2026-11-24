@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>La popote de l'interne pressé</title>
+<meta name="theme-color" content="#24453a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Popote">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  /* VOICE : carnet de cuisine pratique, chaleureux. IDEA : le tableau de service d'une cuisine (plan minuté, bons de commande).
+     PICTURE : tuiles colorées par régime, frise minutée du dimanche. COLOUR : blanc, vert sauge profond, tomate en accent.
+     TYPE : Archivo (titres) + DM Sans. LAYOUT : une colonne mobile, barre d'onglets en bas. */
+  --paper:#fbfaf7; --card:#ffffff; --ink:#1e2420; --soft:#66706a; --rule:#e3e5df; --chip:#eff1ec;
+  --accent:#e0482c; --accent-ink:#fff; --ok:#3d7a4a; --band:#24453a;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:16px; --shadow:0 1px 2px rgba(20,40,30,.05),0 4px 14px rgba(20,40,30,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --paper:#141a17; --card:#1d2420; --ink:#eef1ec; --soft:#a3ada6; --rule:#2f3833; --chip:#27302b;
+  --accent:#ff6b4d; --accent-ink:#141a17; --ok:#7cc48a; --band:#1d3a30; --shadow:none; color-scheme:dark;
+}}
+:root[data-theme=dark]{
+  --paper:#141a17; --card:#1d2420; --ink:#eef1ec; --soft:#a3ada6; --rule:#2f3833; --chip:#27302b;
+  --accent:#ff6b4d; --accent-ink:#141a17; --ok:#7cc48a; --band:#1d3a30; --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+body.lock{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--accent)}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:46rem;margin:0 auto;padding:0 16px}
+.topband{background:var(--band);color:#fff;padding-top:env(safe-area-inset-top)}.top{display:flex;align-items:center;justify-content:space-between;padding:14px 0}.topband .brand small{color:#bcd3c6}.topband .iconbtn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
+.brand{font-family:var(--display);font-weight:800;font-size:1.35rem;letter-spacing:-.01em}
+.brand small{display:block;font-family:var(--body);font-weight:500;font-size:.78rem;color:var(--soft);letter-spacing:0}
+.iconbtn{border:1px solid var(--rule);background:var(--card);border-radius:12px;width:42px;height:42px;display:grid;place-items:center}
+.iconbtn svg{width:20px;height:20px}
+h2.title{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,7vw,2.1rem);line-height:1.08;margin:10px 0 6px;text-wrap:balance}
+.lede{color:var(--soft);margin:0 0 4px;text-wrap:pretty}
+.eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.section-h{font-family:var(--display);font-weight:800;font-size:1.2rem;margin:26px 0 10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 6px;margin:0 -16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--rule);background:var(--card);border-radius:999px;padding:7px 14px;font-size:.9rem;font-weight:500;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+
+/* Trio */
+.trio{background:var(--card);border-radius:20px;box-shadow:var(--shadow);border:1px solid var(--rule);padding:16px;margin-top:14px}
+.trio-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.mini{border-radius:14px;padding:8px 6px;text-align:center;border:0;color:#2b241f;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:78px;justify-content:center}
+.mini .e{font-size:1.6rem;line-height:1}
+.mini .n{font-size:.8rem;font-weight:600;line-height:1.15}
+.trio-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem;color:var(--soft)}
+.trio-meta b{color:var(--ink);font-weight:600}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:600;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.full{width:100%;margin-top:12px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--rule)}
+.btn.small{padding:8px 12px;font-size:.88rem;border-radius:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Cartes recettes */
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--rule);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;cursor:pointer}
+.tile{height:86px;position:relative;display:grid;place-items:center}
+.tile .e{font-size:2.6rem;filter:drop-shadow(0 3px 6px rgba(0,0,0,.12))}
+.rtag{position:absolute;left:10px;top:10px;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.85);color:#2b241f;border-radius:999px;padding:3px 9px}
+.card.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.card.on .tile::after{content:"✓";position:absolute;right:10px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.cbody{padding:12px 14px 4px;flex:1}
+.cbody h3{margin:0 0 4px;font-size:1.03rem;line-height:1.25;font-weight:700}
+.cbody p{margin:0;color:var(--soft);font-size:.9rem;text-wrap:pretty}
+.mline{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;font-size:.8rem;color:var(--soft);font-weight:500}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.pill{font-size:.76rem;font-weight:600;background:var(--chip);border-radius:999px;padding:3px 9px;color:var(--soft);white-space:nowrap}
+.pill.ice{color:#2f6f95}
+.pill.pd{background:#fff1c9;color:#8a6200}
+.pill.soup{background:#fbeed9;color:#9a5b12}
+.pill.af{background:#efe3fb;color:#6b3fa0}
+.pill.kam{background:#2b2b2b;color:#ffb07a}
+.pill.prot{background:#e3e9f7;color:#2f4f9a}
+.pill.good{background:#dcefdc;color:#2c6a37}.pill.bad{background:#f8dedb;color:#a8352a}
+.src{font-size:.78rem!important;font-style:italic;color:var(--soft);margin:0 0 4px!important}
+.cbody p.acc{color:var(--ink);font-size:.84rem;font-weight:600;margin-top:5px}
+.rate{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.rate button{border:1.5px solid var(--rule);background:var(--card);border-radius:12px;padding:10px;font-weight:600;font-size:.9rem}
+.rate button.g[aria-pressed="true"]{background:#2c6a37;border-color:#2c6a37;color:#fff}
+.rate button.b[aria-pressed="true"]{background:#a8352a;border-color:#a8352a;color:#fff}
+.lrow.bad{opacity:.55}
+.kid{margin:0;padding:10px 14px 10px 30px;background:var(--card);border:1px solid var(--rule);border-radius:12px;font-size:.9rem}
+.kid li{margin:3px 0}
+.basics{font-size:.82rem;color:var(--soft);margin-top:14px}
+:root[data-theme=dark] .pill.ice{color:#8cc5ea}@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pill.ice{color:#8cc5ea}}
+.cfoot{padding:10px 14px 14px}
+.tog{width:100%;border:1.5px solid var(--rule);background:transparent;border-radius:11px;padding:9px;font-weight:600;font-size:.92rem}
+.tog[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* Liste index */
+.search{display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--rule);border-radius:12px;padding:2px 6px 2px 12px;margin:12px 0 6px}
+.search:focus-within{border-color:var(--accent)}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:inherit;color:var(--ink);padding:10px 0;outline:none}
+.list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lrow{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:8px 8px 8px 8px;cursor:pointer}
+.lrow.on{border-color:var(--accent)}
+.lic{width:54px;height:54px;border-radius:12px;display:grid;place-items:center;font-size:1.7rem;flex:none}
+.ltx{flex:1;min-width:0}
+.ltx b{display:block;font-size:.97rem;line-height:1.25}
+.ltx span{font-size:.8rem;color:var(--soft)}
+.plus{flex:none;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--rule);background:transparent;font-size:1.3rem;line-height:1;font-weight:600}
+.plus[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:1rem}
+.star{border:0;background:none;font-size:1.15rem;padding:4px;color:var(--soft)}
+.star[aria-pressed="true"]{color:#d99a1e}
+.empty{background:var(--card);border:1.5px dashed var(--rule);border-radius:16px;padding:22px 18px;text-align:center;color:var(--soft);margin-top:16px}
+.empty .e{font-size:2.4rem}
+.empty b{display:block;color:var(--ink);margin:6px 0 4px;font-size:1.05rem}
+
+/* Courses */
+.forbar{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.forbar .pill{background:var(--card);border:1px solid var(--rule);color:var(--ink)}
+.ray{margin-top:18px}
+.ray h4{margin:0 0 6px;font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);display:flex;justify-content:space-between}
+.items{background:var(--card);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.item{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border-top:1px solid var(--rule);cursor:pointer}
+.item:first-child{border-top:0}
+.item input{appearance:none;-webkit-appearance:none;flex:none;width:22px;height:22px;border:2px solid var(--rule);border-radius:7px;margin:1px 0 0;display:grid;place-items:center;background:var(--paper)}
+.item input:checked{background:var(--ok);border-color:var(--ok)}
+.item input:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.item .nm{flex:1;min-width:0}
+.item .nm small{display:block;color:var(--soft);font-size:.76rem}
+.item .qt{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.item.done .nm,.item.done .qt{text-decoration:line-through;opacity:.45}
+details.pantry{margin-top:18px}
+details.pantry summary{cursor:pointer;font-weight:600;padding:12px 14px;background:var(--card);border:1px solid var(--rule);border-radius:14px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.pantry summary::-webkit-details-marker{display:none}
+details.pantry[open] summary{border-radius:14px 14px 0 0;border-bottom:0}
+details.pantry .items{border-radius:0 0 14px 14px}
+.addrow{display:flex;gap:8px;margin-top:8px}
+.addrow input{flex:1;min-width:0;border:1.5px solid var(--rule);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit}
+.xdel{border:0;background:none;color:var(--soft);font-size:1.1rem;padding:0 4px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+
+/* Cuisine */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 6px}
+.stat{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:10px 8px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:1.25rem;font-weight:800;font-variant-numeric:tabular-nums}
+.stat span{font-size:.72rem;color:var(--soft);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.gwrap{margin-top:10px}.gwrap summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--soft);padding:6px 0}
+.gantt{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:12px 12px 8px;margin-top:10px}
+.grow{display:grid;grid-template-columns:86px 1fr;align-items:center;gap:8px;margin:5px 0}
+.glab{font-size:.76rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gtrack{position:relative;height:18px;background:var(--chip);border-radius:6px}
+.gbar{position:absolute;top:0;bottom:0;border-radius:5px;background:var(--c)}
+.gbar.p{background:repeating-linear-gradient(135deg,var(--c) 0 4px,transparent 4px 8px);opacity:.55;border:1px solid var(--c)}
+.gaxis{position:relative;height:16px;margin-left:94px;font-size:.68rem;color:var(--soft)}
+.gaxis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.glegend{display:flex;gap:14px;font-size:.74rem;color:var(--soft);margin:6px 0 0 94px}
+.glegend i{display:inline-block;width:14px;height:9px;border-radius:3px;background:var(--soft);margin-right:5px;vertical-align:0}
+.glegend i.p{background:repeating-linear-gradient(135deg,var(--soft) 0 3px,transparent 3px 6px)}
+.tl{list-style:none;margin:12px 0 0;padding:0;position:relative}
+.tl::before{content:"";position:absolute;left:52px;top:8px;bottom:8px;width:2px;background:var(--rule)}
+.st{display:grid;grid-template-columns:44px 18px 1fr;gap:0 8px;padding:7px 0;align-items:start}
+.st .h{font-variant-numeric:tabular-nums;font-weight:700;font-size:.86rem;padding-top:2px;text-align:right}
+.st .dot{width:14px;height:14px;border-radius:50%;background:var(--c);margin-top:4px;position:relative;z-index:1;border:3px solid var(--paper);box-sizing:content-box;margin-left:-3px}
+.st.p .dot{background:var(--paper);border:3px solid var(--c);width:8px;height:8px;margin-left:0}
+.st .box{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:9px 12px;cursor:pointer}
+.st.p .box{background:transparent;border-style:dashed;cursor:default}
+.st .who{font-size:.72rem;font-weight:700;color:var(--c);text-transform:uppercase;letter-spacing:.05em}
+.st .tx{font-size:.93rem;margin-top:1px}
+.st .tx .q{font-weight:700}
+.st .sub{font-size:.78rem;color:var(--soft);margin-top:3px}
+.st.done .box{opacity:.45}
+.st.done .tx{text-decoration:line-through}
+.st.rem .box{background:transparent;border:0;padding:3px 0;cursor:default}
+.st.rem .tx{font-size:.85rem;font-weight:600;color:var(--accent)}
+.st.rem .dot{background:var(--accent);width:8px;height:8px;margin:6px 0 0 3px;border:0}
+.check{float:right;width:22px;height:22px;border-radius:7px;border:2px solid var(--rule);margin:0 0 4px 8px;display:grid;place-items:center}
+.st.done .check{background:var(--ok);border-color:var(--ok)}
+.st.done .check::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.week{background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden}
+.wd{display:grid;grid-template-columns:52px 1fr 1fr;border-top:1px solid var(--rule)}
+.wd:first-child{border-top:0}
+.wd>div{padding:8px 8px;font-size:.84rem;min-height:44px;display:flex;align-items:center;gap:6px}
+.wd .d{font-weight:700;color:var(--soft);font-size:.78rem;text-transform:uppercase}
+.wd.hd>div{min-height:0;padding:7px 8px;font-size:.7rem;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em;background:var(--chip)}
+.meal{display:flex;align-items:center;gap:6px;background:var(--chip);border-radius:9px;padding:5px 8px;width:100%;line-height:1.15}
+.meal .e{font-size:1.1rem}
+.meal small{display:block;font-size:.68rem;color:#2f6f95;font-weight:700}
+.meal.warn small{color:var(--accent)}
+.meal small.ac{color:var(--soft);font-weight:600}
+.note{font-size:.86rem;color:var(--soft);margin:10px 2px 0}
+.note b{color:var(--ink)}
+.callout{background:var(--card);border-left:4px solid var(--accent);border-radius:10px;padding:10px 12px;font-size:.88rem;margin-top:12px}
+
+/* Barre de sélection + onglets */
+.selbar{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:20;padding:0 12px 8px;pointer-events:none}
+.selbar .in{max-width:44rem;margin:0 auto;background:var(--ink);color:var(--paper);border-radius:16px;padding:10px 10px 10px 14px;display:flex;align-items:center;gap:10px;pointer-events:auto;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.selbar .txt{flex:1;min-width:0;font-size:.86rem;line-height:1.25}
+.selbar .txt b{font-size:.95rem}
+.selbar .ico{font-size:1.2rem;letter-spacing:-.15em}
+.selbar button{border:0;border-radius:10px;padding:9px 12px;font-weight:700;font-size:.86rem;background:var(--accent);color:#fff;white-space:nowrap}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom)}
+.tabbar .in{max-width:46rem;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{border:0;background:none;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.72rem;font-weight:600;color:var(--soft);position:relative}
+.tab svg{width:23px;height:23px}
+.tab[aria-selected="true"]{color:var(--accent)}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--accent);color:#fff;font-size:.68rem;display:grid;place-items:center;padding:0 5px}
+
+/* Feuilles */
+.shade{position:fixed;inset:0;background:rgba(20,14,10,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.shade.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:92vh;overflow:auto;background:var(--paper);border-radius:22px 22px 0 0;transform:translateY(105%);transition:transform .25s ease;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.sheet.open{transform:none}
+.sheet .in{max-width:44rem;margin:0 auto}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--rule);margin:8px auto 0}
+.shead{position:relative}
+.shead .tile{height:150px;border-radius:0}
+.shead .tile .e{font-size:4.4rem}
+.sclose{position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.9);color:#2b241f;font-size:1.1rem;font-weight:700}
+.sbody{padding:14px 18px}
+.sbody h2{font-family:var(--display);font-weight:800;font-size:1.55rem;line-height:1.1;margin:4px 0 6px}
+.sbody h3{font-size:.8rem;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);margin:22px 0 8px}
+.ings{list-style:none;padding:0;margin:0;background:var(--card);border:1px solid var(--rule);border-radius:14px}
+.ings li{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-top:1px solid var(--rule);font-size:.93rem}
+.ings li:first-child{border-top:0}
+.ings li span:last-child{font-weight:600;white-space:nowrap}
+.ings li.pl{color:var(--soft)}
+.steps{margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{position:relative;padding:0 0 12px 40px;font-size:.95rem}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font-weight:700;font-size:.85rem}
+.steps li small{display:block;color:var(--soft);font-size:.78rem;margin-top:2px}
+.preps{display:flex;flex-direction:column;gap:6px}
+.preps div{font-size:.92rem;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:8px 12px}
+.tips{display:grid;gap:8px}
+.tips div{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:10px 12px;font-size:.9rem}
+.tips b{display:block;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.sactions{display:flex;gap:8px;margin-top:20px;position:sticky;bottom:0;background:var(--paper);padding:10px 0 4px}
+.sactions .btn{flex:1}
+.set{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--rule)}
+.set:first-of-type{border-top:0}
+.set label{font-weight:600}
+.set small{display:block;color:var(--soft);font-weight:400;font-size:.8rem}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--rule);background:var(--card);font-weight:700;font-size:1.1rem}
+.step output{min-width:36px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.set select{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--rule);border-radius:10px;padding:6px 8px;max-width:52%}
+.set input[type=month],.set input[type=time]{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--rule);border-radius:10px;padding:6px 8px}
+.toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-size:.9rem;font-weight:600;opacity:0;transition:.2s;z-index:60;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.tbtn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;border:1.5px solid var(--c,var(--accent));color:var(--c,var(--accent));background:transparent;border-radius:999px;padding:5px 11px;font-size:.8rem;font-weight:700}
+.tbtn svg{width:14px;height:14px}
+.timers{position:fixed;left:0;right:0;top:0;z-index:35;padding:calc(6px + env(safe-area-inset-top)) 10px 6px;background:var(--paper);border-bottom:1px solid var(--rule);display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.timers::-webkit-scrollbar{display:none}
+.tchip{flex:none;display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--c);border-radius:14px;padding:6px 6px 6px 10px;max-width:280px}
+.tchip .tt{min-width:0}
+.tchip .tl{font-size:.72rem;font-weight:600;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.tchip .tv{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.15rem;line-height:1.1}
+.tchip button{border:0;background:var(--chip);border-radius:9px;min-width:34px;height:34px;font-weight:700;font-size:.8rem}
+.tchip.ring{background:var(--c);color:#fff;animation:pulse 1s infinite}
+.tchip.ring .tl{color:#fff}
+.tchip.ring button{background:rgba(255,255,255,.25);color:#fff}
+@keyframes pulse{50%{opacity:.75}}
+@media (prefers-reduced-motion:reduce){.tchip.ring{animation:none}}
+.today{background:var(--card);border:1px solid var(--rule);border-radius:18px;padding:14px;margin-top:14px;box-shadow:var(--shadow)}
+.tline{margin:6px 0 2px}
+.trow{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--rule);cursor:pointer;flex-wrap:wrap}
+.trow:first-of-type{border-top:0}
+.tic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.4rem;flex:none}
+.ttx{flex:1;min-width:0}
+.ttx small{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--soft)}
+.ttx b{font-size:.98rem}
+.ttx em{display:block;font-style:normal;font-size:.76rem;color:#2f6f95;font-weight:600}
+.trow .tbtn{margin-top:0}
+.tnote{font-size:.85rem;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--chip)}
+.loading{color:var(--soft);padding:30px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="topband"><div class="wrap">
+  <header class="top">
+    <div class="brand">La popote<small id="subtitle">de l'interne pressé · cuisiner une fois, manger toute la semaine</small></div>
+    <button class="iconbtn" id="openSet" type="button" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+  </header></div></div>
+<div class="wrap">
+  <main>
+    <section id="v-semaine"><div class="loading">Chargement des recettes…</div></section>
+    <section id="v-recettes" hidden></section>
+    <section id="v-courses" hidden></section>
+    <section id="v-cuisine" hidden></section>
+  </main>
+</div>
+
+<div class="selbar" id="selbar" hidden><div class="in"><span class="ico" id="selIco"></span><div class="txt" id="selTxt"></div><button type="button" data-view="courses">Courses</button><button type="button" data-view="cuisine">Plan</button></div></div>
+
+<nav class="tabbar" aria-label="Navigation"><div class="in" role="tablist">
+  <button class="tab" role="tab" data-view="semaine" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Semaine</button>
+  <button class="tab" role="tab" data-view="recettes" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg>Recettes</button>
+  <button class="tab" role="tab" data-view="courses" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h2l2 11h10l2-8H7"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></svg>Courses<span class="badge" id="bCourses" hidden></span></button>
+  <button class="tab" role="tab" data-view="cuisine" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16v2a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7z"/><path d="M9 7c0-1.5 1-2 1-3.5M13 7c0-1.5 1-2 1-3.5"/></svg>Dimanche</button>
+</div></nav>
+
+<div class="shade" id="shade"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Détail"><div class="in" id="sheetIn"></div></div>
+<div class="timers" id="timers" hidden></div>
+<div class="toast" id="toast"></div>
+
+<script>
+window.BATCH={weeks:[],add:function(w){if(w&&w.n&&!this.weeks.some(function(x){return x.n===w.n}))this.weeks.push(w)}};
+</script>
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+var LS={get:function(k,d){try{var v=localStorage.getItem("bdd_"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+        set:function(k,v){try{localStorage.setItem("bdd_"+k,JSON.stringify(v))}catch(e){}}};
+
+var DEF={pers:2,port:6,soirs:5,midis:3,start:"10:00",cooks:1,oven:2,feux:4,acc:1,sport:0,kamado:1,airfryer:1,saison:"auto",enfant:1,naissance:"2025-08",petitdej:1};
+var S=Object.assign({},DEF,LS.get("set",{}));
+var sel=LS.get("sel",[]), reg=LS.get("reg","tous"), fav=LS.get("fav",{}), chk=LS.get("chk",{}), extra=LS.get("extra",[]), done=LS.get("done",{}), notes=LS.get("notes",{});
+var view=LS.get("view","semaine"), weekN=0, iq="", ireg=null, favOnly=false, noteF="", isort="date", protOnly=LS.get("prot",false);
+var PROT=30, isais="cur", kamOnly=false, afOnly=false, pdOnly=false, soupOnly=LS.get("soup",false);
+var SAIS=[["printemps","Printemps"],["ete","Été"],["automne","Automne"],["hiver","Hiver"]];
+function curSaisonAuto(){var m=new Date().getMonth()+1;return m>=3&&m<=5?"printemps":m<=8&&m>=6?"ete":m>=9&&m<=11?"automne":"hiver"}
+function curSaison(){if(S.saison&&S.saison!=="auto")return S.saison;var m=new Date().getMonth()+1;return m>=3&&m<=5?"printemps":m<=8&&m>=6?"ete":m>=9&&m<=11?"automne":"hiver"}
+function saisLabel(k){var x=SAIS.filter(function(z){return z[0]===k})[0];return x?x[1]:""}
+function isK(r){return !!(r.kamado||r.etapes.some(function(e){return e.p==="kamado"}))}
+function isA(r){return r.etapes.some(function(e){return e.p==="airfryer"})}
+/* ---------- Enfant : âge calculé depuis le mois de naissance, conseils par recette ---------- */
+function ageM(){var p=String(S.naissance||"").split("-"),y=+p[0],m=+p[1];if(!y||!m)return null;var d=new Date();return Math.max(0,(d.getFullYear()-y)*12+(d.getMonth()+1-m))}
+function ageTxt(){var a=ageM();if(a==null)return"";return a<24?a+" mois":Math.floor(a/12)+" ans"+(a%12&&a<72?" ½".slice(0,a%12>=6?2:0):"")}
+function childF(){if(!S.enfant)return 0;var a=ageM();if(a==null)return 0;return a<36?0.25:a<72?0.5:a<144?0.75:1}
+function vpo(){var a=ageM();if(a==null)return"";if(a<12)return"10 g";if(a<24)return"20 g";if(a<36)return"30 g";return (Math.floor(a/12)+1)*10+" g"}
+function texture(){var a=ageM();if(a==null)return"";if(a<8)return"mixé lisse";if(a<12)return"écrasé, avec de petits morceaux fondants";if(a<24)return"petits morceaux fondants, écrasés à la fourchette si besoin";if(a<36)return"morceaux coupés petits";return"comme les grands, coupé à sa taille"}
+function childTips(r){
+  var a=ageM();if(a==null)return[];var t=[],names=ingsOf(r).map(function(i){return norm(i.n)}).join(" | ");
+  var has=function(re){return re.test(names)};
+  t.push("Prélever sa part avant de saler ; texture : "+texture()+".");
+  if(has(/piment|harissa|sriracha|chili|gochujang|cayenne/))t.push("Piment : sa part est servie avant d'en ajouter.");
+  if(a<36&&has(/sauce soja|nuoc|sauce poisson|bouillon|miso/))t.push("Assaisonnement très salé (sauce soja, bouillon…) : prélever sa part avant, ou la diluer avec un peu d'eau.");
+  if(a<36&&has(/tofu|tempeh|lait de soja|edamame/))t.push("Produits à base de soja (tofu, tempeh) déconseillés avant 3 ans : servir sa part sans.");
+  if(a<60&&has(/noix|cacahuete|amande|pistache|noisette|pignon|cajou/))t.push("Fruits à coque entiers : risque d'étouffement, les mixer en poudre ou les retirer de sa part.");
+  if(a<60&&has(/chevre|brie|camembert|reblochon|feta|morbier|munster|roquefort|mozzarella|ricotta/))t.push("Fromage : vérifier qu'il est au lait pasteurisé (lait cru déconseillé avant 5 ans, sauf pâtes pressées cuites type emmental, comté).");
+  if(has(/vin |vin$|vin rouge|vin blanc|biere|cidre brut|alcool/))t.push("Contient du vin : l'alcool ne s'évapore pas entièrement à la cuisson, mieux vaut une autre part pour lui.");
+  if(a<12&&has(/miel/))t.push("Pas de miel avant 1 an.");
+  if(r.bebe)t.push(r.bebe);
+  t.push("Viande, poisson, œuf : environ "+vpo()+" par jour au total à cet âge.");
+  return t;
+}
+function isSoup(r){return r.type==="soupe"}
+function vis(r){return (S.kamado||!isK(r))&&(S.airfryer||!isA(r))&&(S.petitdej||!isPD(r))}
+
+var REG={
+  viande:{l:"Viande",c:"#b4532a",g:"linear-gradient(135deg,#fbe1d1,#eba27e)"},
+  poisson:{l:"Poisson",c:"#2f6f95",g:"linear-gradient(135deg,#dbeaf5,#94c1df)"},
+  vege:{l:"Végétarien",c:"#b8860b",g:"linear-gradient(135deg,#fbf0cf,#ecc96d)"},
+  vegan:{l:"Végétalien",c:"#4a7c3f",g:"linear-gradient(135deg,#e2efd8,#9fc78c)"}
+};
+var REGF=[["tous","Tout",""],["viande","Viande & poisson","#b4532a"],["vege","Végétarien","#b8860b"],["vegan","Végétalien","#4a7c3f"]];
+var RAY=[["leg","Fruits & légumes"],["bou","Boucherie, volaille, poisson"],["fra","Frais & traiteur"],["cre","Crèmerie & œufs"],["sur","Surgelés"],["epi","Épicerie"],["con","Conserves & bocaux"],["boi","Boissons"],["pla","Placard & épices"]];
+var PAL=["#c4502f","#2f7fa8","#5a8f45","#b8860b","#8a5a9e","#2b8a85","#c0587e","#6d7b2e"];
+var JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+var MOIS=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+var MOISL=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+var R={}, ALL=[], cache={};
+
+function save(){LS.set("sel",sel);LS.set("reg",reg);LS.set("fav",fav);LS.set("chk",chk);LS.set("extra",extra);LS.set("done",done);LS.set("notes",notes);LS.set("set",S);LS.set("view",view);sync.push()}
+
+/* ---------- Synchronisation (capacité db) : la sélection, les cases cochées et les notes
+   suivent d'un appareil à l'autre ; les notes sont lues par la tâche du jeudi. ---------- */
+var sync=(function(){
+  var db=null,refs={},last={},busy={},again={},timer=null,ready=false;
+  function menuBody(){return{sel:sel,chk:chk,extra:extra,done:done,fav:fav,S:S}}
+  function notesBody(){var r={};Object.keys(notes).forEach(function(k){if(notes[k]&&R[k])r[k]={v:notes[k],nom:R[k].nom}});return{r:r}}
+  function write(name,body){
+    var js=JSON.stringify(body);if(js===last[name])return;
+    if(busy[name]){again[name]=1;return}
+    busy[name]=1;last[name]=js;
+    refs[name].set(JSON.parse(js)).catch(function(){last[name]=null}).then(function(){busy[name]=0;if(again[name]){again[name]=0;write(name,name==="menu"?menuBody():notesBody())}});
+  }
+  function push(){if(!ready)return;clearTimeout(timer);timer=setTimeout(function(){write("menu",menuBody());write("notes",notesBody())},700)}
+  function applyMenu(d){
+    if(Array.isArray(d.sel))sel=d.sel.filter(function(id){return !Object.keys(R).length||R[id]});
+    if(d.chk&&typeof d.chk==="object")chk=Object.assign({},d.chk);
+    if(Array.isArray(d.extra))extra=d.extra.map(function(x){return{t:String(x.t||""),c:x.c?1:0}});
+    if(d.done&&typeof d.done==="object")done=Object.assign({},d.done);
+    if(d.fav&&typeof d.fav==="object")fav=Object.assign({},d.fav);
+    if(d.S&&typeof d.S==="object")Object.keys(DEF).forEach(function(k){if(d.S[k]!=null&&typeof d.S[k]===typeof DEF[k])S[k]=d.S[k]});
+  }
+  function start(){
+    if(!(window.claude&&typeof window.claude.use==="function"))return;
+    window.claude.use("db").then(function(d){
+      if(!d)return;db=d;
+      try{refs.menu=db.doc("state/menu");refs.notes=db.doc("state/notes")}catch(e){return}
+      var first={menu:1,notes:1};
+      function sub(name){
+        refs[name].onSnapshot(function(snap){
+          if(snap.metadata&&snap.metadata.hasPendingWrites)return;
+          var data=snap.exists?snap.data():null;
+          if(first[name]){first[name]=0;if(!data){ready=true;write(name,name==="menu"?menuBody():notesBody());return}}
+          if(!data)return;
+          var js=JSON.stringify(data);if(js===last[name])return;last[name]=js;
+          if(name==="menu")applyMenu(data);
+          else{var n={};Object.keys(data.r||{}).forEach(function(k){var v=data.r[k]&&data.r[k].v;if(v===1||v===-1)n[k]=v});notes=n}
+          ready=true;cache={};LS.set("sel",sel);LS.set("chk",chk);LS.set("extra",extra);LS.set("done",done);LS.set("fav",fav);LS.set("notes",notes);LS.set("set",S);
+          var a=document.activeElement;if(!(a&&(a.id==="iq"||a.id==="addIn")))render();
+        },function(){});
+      }
+      sub("menu");sub("notes");
+    },function(){});
+  }
+  return{push:push,start:start};
+})();
+function rebuild(){
+  R={};ALL=[];cache={};
+  BATCH.weeks.sort(function(a,b){return a.n-b.n});
+  BATCH.weeks.forEach(function(w){(w.recettes||[]).forEach(function(r){r.w=w.n;r.dim=w.dim;if(!r.court)r.court=r.nom;R[r.id]=r;ALL.push(r)})});
+  sel=sel.filter(function(id){return R[id]});
+  if(!weekN||!BATCH.weeks.some(function(w){return w.n===weekN}))weekN=BATCH.weeks.length?BATCH.weeks[BATCH.weeks.length-1].n:0;
+}
+function okReg(r,g){if(!g||g==="tous")return true;if(g==="viande")return r.reg==="viande"||r.reg==="poisson";if(g==="vege")return r.reg==="vege"||r.reg==="vegan";return r.reg===g}
+function regOf(r){return REG[r.reg]||REG.vege}
+function fdate(s,long){if(!s)return"";var p=s.split("-");return parseInt(p[2],10)+" "+(long?MOISL:MOIS)[parseInt(p[1],10)-1]}
+
+/* ---------- Quantités ---------- */
+var PLU={"gousse":"gousses","boîte":"boîtes","tranche":"tranches","carré":"carrés"};
+function frac(n){var i=Math.floor(n+1e-9),f=n-i;if(f>0.74)return String(i+1);if(f>0.24)return i?i+"½":"½";return i?String(i):"½"}
+function qty(q,u,buy){
+  if(!q)return"";
+  if(u==="g"){q=q<100?Math.round(q/5)*5:Math.round(q/10)*10;return q>=1000?String(Math.round(q/100)/10).replace(".",",")+" kg":q+" g"}
+  if(u==="ml"){q=Math.round(q/10)*10;return q>=1000?String(Math.round(q/100)/10).replace(".",",")+" L":(q/10)+" cl"}
+  var num=buy?Math.max(1,Math.ceil(q-0.05)):q, s=buy?String(num):frac(q);
+  if(!u)return s;
+  return s+" "+(num>1.01&&PLU[u]?PLU[u]:u);
+}
+function f(r){return r.type==="petitdej"?1:S.port/r.base}
+function isPD(r){return r.type==="petitdej"}
+function platsSel(){return sel.filter(function(id){return R[id]&&!isPD(R[id])})}
+/* Recette « effective » : si l'accompagnement se prépare le dimanche, sa mise en place et ses étapes s'ajoutent. */
+function eff(r){
+  var a=S.acc&&r.acc&&r.acc.dim?r.acc:null;
+  if(!a)return{prep:r.prep||[],etapes:r.etapes};
+  var n=r.etapes.length,ex=(a.etapes||[]).map(function(s,i){var c=Object.assign({},s);
+    c.d=s.d?s.d.map(function(j){return j+n}):(i?[n+i-1]:[]);return c});
+  return{prep:(r.prep||[]).concat(a.prep||[]),etapes:r.etapes.concat(ex)};
+}
+function ingsOf(r){var l=r.ing;if(S.acc&&r.acc)l=l.concat((r.acc.ing||[]).map(function(i){return Object.assign({acc:1},i)}));
+  if(S.sport&&r.boost)l=l.concat((r.boost.ing||[]).map(function(i){return Object.assign({sp:1},i)}));return l}
+function protOf(r){return r.prot?Math.round(r.prot+(S.sport&&r.boost?r.boost.g||0:0)):0}
+function isProt(r){return protOf(r)>=PROT}
+function dur(m){m=Math.round(m);if(m<60)return m+" min";var h=Math.floor(m/60),mm=m%60;return h+" h"+(mm?" "+(mm<10?"0":"")+mm:"")}
+function t0(){var p=(S.start||"10:00").split(":");return (+p[0]||0)*60+(+p[1]||0)}
+function clock(t){var x=Math.round(t0()+t),h=Math.floor(x/60)%24,m=x%60;return h+":"+(m<10?"0":"")+m}
+function hm(t){var x=Math.round(t0()+t),h=Math.floor(x/60)%24,m=x%60;return h+"h"+(m<10?"0":"")+m}
+
+/* ---------- Liste de courses ---------- */
+function shopping(ids){
+  var m={},order=[];
+  ids.forEach(function(id){var r=R[id];if(!r)return;var k=f(r);
+    ingsOf(r).forEach(function(it){var key=it.n+"|"+it.u;var e=m[key];
+      if(!e){e=m[key]={k:key,n:it.n,u:it.u,r:it.r,pl:!!it.pl,q:0,from:[]};order.push(e)}
+      var lab=it.acc?r.court+" (accomp.)":it.sp?r.court+" (sport)":r.court;
+      e.q+=(it.q||0)*k;if(e.from.indexOf(lab)<0)e.from.push(lab)})});
+  return order;
+}
+
+/* ---------- Ordonnancement du dimanche ----------
+   Graphe : mise en place mutualisée (même geste sur le même ingrédient = une seule tâche),
+   puis étapes de chaque recette, puis tiédir et mettre en boîtes.
+   Simulation par événements : 1 ou 2 cuisiniers pour les tâches actives, feux et four limités,
+   priorité au chemin critique le plus long (ce qui est long démarre en premier). */
+function plan(ids){
+  var key=ids.join(",")+"|"+S.port+S.cooks+S.oven+S.feux+S.acc;
+  if(cache[key])return cache[key];
+  var nodes={},order=[],recs=ids.map(function(id){return R[id]}).filter(Boolean),prepMap={};
+  function add(n){n.succ=[];nodes[n.id]=n;order.push(n);return n}
+  recs.forEach(function(r,ri){r._c=PAL[ri%PAL.length];r._e=eff(r);var k=f(r);r._prep=[];
+    r._e.prep.forEach(function(p){var id="p:"+p.a+"|"+p.x+"|"+(p.u||"");var n=prepMap[id];
+      if(!n)n=prepMap[id]=add({id:id,kind:"prep",a:1,p:"plan",m:0,act:p.a,obj:p.x,u:p.u||"",q:0,parts:[],deps:[]});
+      n.m+=p.m*Math.sqrt(k);n.q+=p.q*k;n.parts.push({r:r,q:p.q*k});if(r._prep.indexOf(id)<0)r._prep.push(id)})});
+  Object.keys(prepMap).forEach(function(k){prepMap[k].m=Math.max(1,Math.round(prepMap[k].m))});
+  recs.forEach(function(r){
+    var sid=r._e.etapes.map(function(s,i){return r.id+":"+i}),used={};
+    r._e.etapes.forEach(function(s,i){
+      var deps=s.d?s.d.map(function(j){return sid[j]}):(i?[sid[i-1]]:[]);
+      deps.forEach(function(d){used[d]=1});
+      if(!deps.length&&(!s.l||!s.a))deps=r._prep.slice(); /* une cuisson passive ne démarre pas avant que la recette soit lancée */
+      add({id:sid[i],kind:"step",r:r,t:s.t,m:s.m,a:s.a?1:0,p:s.p||"plan",T:s.T||0,deps:deps});
+    });
+    var sinks=sid.filter(function(id){return !used[id]});
+    add({id:r.id+":c",kind:"cool",r:r,t:"Laisser tiédir avant de fermer les boîtes.",m:20,a:0,p:"plan",deps:sinks});
+    add({id:r.id+":b",kind:"box",r:r,t:"Répartir en boîtes, étiqueter (nom et date), au frigo"+(r.congel?" ou au congélateur":"")+".",m:5,a:1,p:"plan",deps:[r.id+":c"]});
+  });
+  var ks=order.filter(function(n){return n.p==="kamado"});
+  if(ks.length){var kt=Math.min.apply(null,ks.map(function(n){return n.T||120}));
+    add({id:"kam:on",kind:"kam",t:"Allumer le kamado : charbon, déflecteur pour la chaleur indirecte, copeaux de fumage.",m:5,a:1,p:"plan",deps:[]});
+    add({id:"kam:heat",kind:"kam",t:"Laisser monter puis stabiliser le kamado à "+kt+" °C (aérations presque fermées).",m:35,a:0,p:"plan",deps:["kam:on"]});
+    ks.forEach(function(n){n.deps.push("kam:heat")});}
+  order.forEach(function(n){n.deps.forEach(function(d){if(nodes[d])nodes[d].succ.push(n)})});
+  var pr={};function P(n){if(pr[n.id]!=null)return pr[n.id];var mx=0;n.succ.forEach(function(s){mx=Math.max(mx,P(s))});return pr[n.id]=n.m+mx}
+  order.forEach(P);
+  var t=0,started={},fin={},run=[],out=[],nf=0,guard=0;
+  function feu(){return run.filter(function(x){return x.n.p==="feu"}).length}
+  function kamOK(n){var o=run.filter(function(x){return x.n.p==="kamado"});if(!o.length)return true;if(o.length>=2)return false;return o.every(function(x){return Math.abs(x.n.T-n.T)<=30})}
+  function ovenOK(n){var o=run.filter(function(x){return x.n.p==="four"});if(!o.length)return true;if(o.length>=S.oven)return false;return o.every(function(x){return Math.abs(x.n.T-n.T)<=10})}
+  while(nf<order.length&&guard++<4000){
+    var ready=order.filter(function(n){return !started[n.id]&&n.deps.every(function(d){return fin[d]||!nodes[d]})})
+      .sort(function(a,b){return pr[b.id]-pr[a.id]||a.a-b.a});
+    var busy=run.filter(function(x){return x.n.a}).length;
+    ready.forEach(function(n){
+      if(n.a&&busy>=S.cooks)return;
+      if(n.p==="feu"&&feu()>=S.feux)return;
+      if(n.p==="four"&&!ovenOK(n))return;
+      if(n.p==="kamado"&&!kamOK(n))return;
+      if(n.p==="airfryer"&&run.some(function(x){return x.n.p==="airfryer"}))return;
+      started[n.id]=1;var e={n:n,s:t,e:t+n.m};run.push(e);out.push(e);if(n.a)busy++;
+    });
+    if(!run.length)break;
+    t=Math.min.apply(null,run.map(function(x){return x.e}));
+    run=run.filter(function(x){if(x.e<=t){fin[x.n.id]=1;nf++;return false}return true});
+  }
+  out.sort(function(a,b){return a.s-b.s||b.n.a-a.n.a});
+  var rem=[];
+  [["four",15,10],["airfryer",3,10]].forEach(function(cf){var ov=out.filter(function(x){return x.n.p===cf[0]});
+    ov.forEach(function(e){var warm=ov.some(function(x){return x!==e&&x.s<e.s&&x.e>=e.s-cf[1]&&Math.abs(x.n.T-e.n.T)<=cf[2]});
+      if(!warm)rem.push({s:Math.max(0,e.s-cf[1]),T:e.n.T,k:cf[0]})})});
+  var end=out.reduce(function(m,x){return Math.max(m,x.e)},0);
+  var act=out.reduce(function(m,x){return m+(x.n.a?x.n.m:0)},0);
+  return cache[key]={out:out,rem:rem,end:end,act:act,recs:recs};
+}
+function activeOf(r){var k=f(r),m=0,E=eff(r);E.prep.forEach(function(p){m+=p.m*Math.sqrt(k)});E.etapes.forEach(function(s){if(s.a)m+=s.m});return Math.round(m+5)}
+function noteTag(r){var v=notes[r.id];return v===1?'<span class="pill good">À refaire</span>':v===-1?'<span class="pill bad">À ne pas refaire</span>':''}
+function totalOf(r){return plan([r.id]).end}
+
+/* ---------- Répartition des repas ---------- */
+function meals(ids){
+  var recs=ids.map(function(id){return R[id]}).filter(function(r){return r&&!isPD(r)});
+  var pool=recs.map(function(r){return{r:r,left:S.port}});
+  var slots=[];for(var d=1;d<=7;d++){if(d<=S.midis)slots.push({d:d,k:"midi"});if(d<=S.soirs)slots.push({d:d,k:"soir"})}
+  var cf=childF(),need1=S.pers+cf,prev=null,res=[];
+  slots.forEach(function(sl){
+    var best=null,bs=1e9;
+    pool.forEach(function(p){if(p.left<Math.max(S.pers*0.75,need1*0.5)-0.01)return;
+      var r=p.r,sc=sl.d<=r.frigo?r.frigo:(r.congel?50+sl.d:900);
+      if(isSoup(r))sc+=sl.k==="midi"?-1.5:1;
+      if(prev&&prev===r)sc+=2;
+      var b2=res.length>1&&res[res.length-2].p;if(b2&&b2.r===r)sc+=1;
+      if(sc<bs){bs=sc;best=p}});
+    if(best){best.left-=need1;prev=best.r}
+    res.push({d:sl.d,k:sl.k,p:best,frozen:best?sl.d>best.r.frigo&&best.r.congel:false,risky:best?sl.d>best.r.frigo&&!best.r.congel:false});
+  });
+  return{slots:res,pool:pool,need:Math.round(slots.length*need1*10)/10,have:recs.length*S.port,cf:cf};
+}
+
+/* ---------- Rendu : Semaine ---------- */
+function tileStyle(r){return "background:"+regOf(r).g}
+function cardHTML(r){
+  var on=sel.indexOf(r.id)>=0;
+  return '<article class="card'+(on?" on":"")+'" data-open="'+r.id+'"><div class="tile" style="'+tileStyle(r)+'"><span class="rtag">'+esc(regOf(r).l)+'</span><span class="e">'+esc(r.ico)+'</span></div>'+
+    '<div class="cbody"><h3>'+esc(r.nom)+'</h3>'+(r.src?'<p class="src">'+esc(r.src)+'</p>':'')+'<p>'+esc(r.desc)+'</p>'+(r.acc&&S.acc?'<p class="acc">Avec : '+esc(r.acc.nom.toLowerCase())+'</p>':'')+'<div class="mline">'+noteTag(r)+(isPD(r)?'<span class="pill pd">Petit-déj · '+r.base+' parts</span>':'')+(isSoup(r)?'<span class="pill soup">Soupe</span>':'')+(S.enfant&&ageM()!=null&&ageM()<36&&/tofu|tempeh/.test(norm(ingsOf(r).map(function(i){return i.n}).join(" ")))?'<span class="pill">Enfant : sans tofu</span>':'')+(isK(r)?'<span class="pill kam">Kamado</span>':'')+(isA(r)?'<span class="pill af">Air fryer</span>':'')+(isProt(r)?'<span class="pill prot">Protéiné</span>':'')+'<span>'+dur(activeOf(r))+' actif'+(r.prot?' · '+protOf(r)+' g prot.':'')+' · frigo '+r.frigo+' j'+(r.congel?' · se congèle':'')+'</span></div></div>'+
+    '<div class="cfoot"><button class="tog" type="button" data-tog="'+r.id+'" aria-pressed="'+on+'">'+(on?"✓ Dans ma semaine":"+ Ajouter à ma semaine")+'</button></div></article>';
+}
+function soupChip(){return '<button type="button" class="chip" data-soup="1" aria-pressed="'+soupOnly+'"><span class="dot" style="background:#d08a2e"></span>Soupes & bouillons</button>'}
+function protChip(){return '<button type="button" class="chip" data-prot="1" aria-pressed="'+protOnly+'"><span class="dot" style="background:#2f4f9a"></span>Protéiné</button>'}
+function regChips(cur,attr){return REGF.map(function(g){return '<button type="button" class="chip" '+attr+'="'+g[0]+'" aria-pressed="'+(cur===g[0])+'">'+(g[2]?'<span class="dot" style="background:'+g[2]+'"></span>':'')+esc(g[1])+'</button>'}).join("")}
+function trioOf(w,g){
+  var ids=((w.trios||{})[g]||[]).filter(function(id){return R[id]&&vis(R[id])});
+  if(ids.length<3){(w.recettes||[]).forEach(function(r){if(ids.length<3&&vis(r)&&!isPD(r)&&okReg(r,g)&&ids.indexOf(r.id)<0)ids.push(r.id)})}
+  return ids.slice(0,3);
+}
+function renderSemaine(){
+  var el=$("v-semaine");
+  if(!BATCH.weeks.length){el.innerHTML='<div class="empty"><div class="e">🍳</div><b>Aucune recette pour l\'instant</b>La première proposition arrive bientôt.</div>';return}
+  var w=BATCH.weeks.filter(function(x){return x.n===weekN})[0];
+  var last=BATCH.weeks[BATCH.weeks.length-1];
+  var h=todayHTML();
+  if(BATCH.weeks.length>1)h+='<div class="chips" style="margin-top:6px">'+BATCH.weeks.slice().reverse().map(function(x){return '<button type="button" class="chip" data-week="'+x.n+'" aria-pressed="'+(x.n===weekN)+'">'+(x===last?"Cette semaine":"S"+x.n+" · "+fdate(x.dim))+'</button>'}).join("")+'</div>';
+  h+='<div class="eyebrow" style="margin-top:12px">Semaine '+w.n+' · dimanche '+fdate(w.dim,true)+(w.saison?' · '+esc(saisLabel(w.saison)):'')+'</div><h2 class="title">'+esc(w.titre)+'</h2><p class="lede">'+esc(w.intro)+'</p>';
+  h+='<div class="chips" style="margin-top:14px">'+regChips(reg,"data-reg")+protChip()+soupChip()+'</div>';
+  var trio=soupOnly?(w.recettes||[]).filter(function(r){return vis(r)&&okReg(r,reg)&&isSoup(r)&&(!protOnly||isProt(r))}).slice(0,3).map(function(r){return r.id}):protOnly?(w.recettes||[]).filter(function(r){return vis(r)&&okReg(r,reg)&&isProt(r)}).sort(function(a,b){return protOf(b)-protOf(a)}).slice(0,3).map(function(r){return r.id}):trioOf(w,reg);
+  if(trio.length){
+    var pl=plan(trio),same=trio.length===sel.length&&trio.every(function(id){return sel.indexOf(id)>=0});
+    h+='<div class="trio"><div class="eyebrow">Le trio proposé</div><div class="trio-tiles">'+trio.map(function(id){var r=R[id];return '<button type="button" class="mini" data-open="'+id+'" style="'+tileStyle(r)+'"><span class="e">'+esc(r.ico)+'</span><span class="n">'+esc(r.court)+'</span></button>'}).join("")+'</div>'+
+      '<div class="trio-meta"><span><b>'+dur(pl.end)+'</b> en cuisine</span><span><b>'+dur(pl.act)+'</b> actif</span><span><b>'+(trio.length*S.port)+'</b> portions</span></div>'+
+      (same?'<button class="btn full ghost" type="button" data-view="courses">✓ Choisi · voir la liste de courses</button>':'<button class="btn full" type="button" data-trio="'+trio.join(",")+'">'+(sel.length?"Remplacer ma sélection par ce trio":"Choisir ces 3 plats")+'</button>')+'</div>';
+  }
+  var list=(w.recettes||[]).filter(function(r){return vis(r)&&!isPD(r)&&okReg(r,reg)&&(!protOnly||isProt(r))&&(!soupOnly||isSoup(r))});
+  var pds=(w.recettes||[]).filter(function(r){return vis(r)&&isPD(r)&&okReg(r,reg)});
+  h+='<h3 class="section-h">Toutes les propositions <span style="color:var(--soft);font-family:var(--body);font-size:.9rem;font-weight:500">('+list.length+')</span></h3>';
+  h+=list.length?'<div class="grid">'+list.map(cardHTML).join("")+'</div>':'<div class="empty">Rien dans ce régime cette semaine.</div>';
+  if(pds.length)h+='<h3 class="section-h">Petits-déjeuners <span style="color:var(--soft);font-family:var(--body);font-size:.9rem;font-weight:500">à préparer d\'avance</span></h3><div class="grid">'+pds.map(cardHTML).join("")+'</div>';
+  el.innerHTML=h;
+}
+
+/* ---------- Aujourd'hui : ce qu'on mange ce midi et ce soir ---------- */
+var JOURSL=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+function todayHTML(){
+  if(!platsSel().length)return"";
+  var wd=new Date().getDay(),d=wd===0?7:wd,M=meals(sel),h='';
+  if(wd===0){
+    var pl=plan(sel);
+    return '<div class="today"><div class="eyebrow">Aujourd\'hui · dimanche</div><div class="tline"><b>Jour de batch</b> : '+platsSel().length+' plats, environ '+dur(pl.end)+' en cuisine.</div><button class="btn full" type="button" data-view="cuisine">Ouvrir le plan du dimanche</button></div>';
+  }
+  var rows=["midi","soir"].map(function(k){var s=M.slots.filter(function(z){return z.d===d&&z.k===k})[0];if(!s||!s.p)return"";var r=s.p.r,a=S.acc&&r.acc&&!r.acc.dim?r.acc:null;
+    return '<div class="trow" data-open="'+r.id+'"><span class="tic" style="'+tileStyle(r)+'">'+esc(r.ico)+'</span><div class="ttx"><small>'+(k==="midi"?"Ce midi":"Ce soir")+'</small><b>'+esc(r.court)+(a?' + '+esc(a.nom.toLowerCase()):'')+'</b>'+(s.frozen?'<em>sorti du congélateur hier soir</em>':'')+'</div>'+(a&&a.m>=3?tbtn(a.nom,a.m,regOf(r).c):'')+'</div>'}).join("");
+  var tm=M.slots.filter(function(z){return z.d===d+1&&z.frozen&&z.p});
+  if(!rows&&!tm.length)return"";
+  h='<div class="today"><div class="eyebrow">Aujourd\'hui · '+JOURSL[wd]+'</div>'+rows;
+  if(tm.length)h+='<div class="tnote">Ce soir, sortir du congélateur pour demain : <b>'+tm.map(function(z){return esc(z.p.r.court)}).join(", ")+'</b>.</div>';
+  return h+'</div>';
+}
+
+/* ---------- Rendu : Recettes (index) ---------- */
+function norm(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase()}
+function renderRecettes(){
+  var el=$("v-recettes"),g=ireg==null?reg:ireg;
+  var terms=norm(iq).split(/\s+/).filter(Boolean);
+  var list=ALL.filter(function(r){
+    if(!okReg(r,g))return false;if(favOnly&&!fav[r.id])return false;
+    if(protOnly&&!isProt(r))return false;
+    if(!vis(r))return false;if(kamOnly&&!isK(r))return false;if(afOnly&&!isA(r))return false;if(soupOnly&&!isSoup(r))return false;if(pdOnly&&!isPD(r))return false;
+    var sz=isais==="cur"?curSaison():isais;if(sz!=="all"&&r.saisons&&r.saisons.indexOf(sz)<0)return false;
+    if(noteF==="good"&&notes[r.id]!==1)return false;if(noteF==="bad"&&notes[r.id]!==-1)return false;
+    if(terms.length){var hay=norm([r.nom,r.desc,r.src||"",regOf(r).l,r.ing.map(function(i){return i.n}).join(" ")].join(" "));for(var i=0;i<terms.length;i++)if(hay.indexOf(terms[i])<0)return false}
+    return true});
+  list.sort(isort==="az"?function(a,b){return a.nom.localeCompare(b.nom,"fr")}:function(a,b){return b.w-a.w||a.nom.localeCompare(b.nom,"fr")});
+  var h='<h2 class="title">Toutes les recettes</h2><p class="lede">'+ALL.length+' recettes, '+BATCH.weeks.length+' semaine'+(BATCH.weeks.length>1?"s":"")+'. Ajoute-en à ta semaine : la liste de courses suit.</p>';
+  h+='<div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--soft)"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="iq" type="search" placeholder="Plat, ingrédient (poireau, coco…)" value="'+esc(iq)+'" autocomplete="off"></div>';
+  h+='<div class="chips">'+regChips(g,"data-ireg")+protChip()+soupChip()+'<button type="button" class="chip" data-fav="1" aria-pressed="'+favOnly+'">★ Favoris</button><button type="button" class="chip" data-notef="good" aria-pressed="'+(noteF==="good")+'">À refaire</button><button type="button" class="chip" data-notef="bad" aria-pressed="'+(noteF==="bad")+'">À ne pas refaire</button><button type="button" class="chip" data-sort="1" aria-pressed="false">Tri : '+(isort==="az"?"A → Z":"récentes")+'</button></div>';
+  h+='<div class="chips"><button type="button" class="chip" data-sais="cur" aria-pressed="'+(isais==="cur")+'">De saison ('+esc(saisLabel(curSaison()).toLowerCase())+')</button>'+SAIS.map(function(z){return '<button type="button" class="chip" data-sais="'+z[0]+'" aria-pressed="'+(isais===z[0])+'">'+z[1]+'</button>'}).join("")+'<button type="button" class="chip" data-sais="all" aria-pressed="'+(isais==="all")+'">Toute l\'année</button>'+(S.kamado?'<button type="button" class="chip" data-kam="1" aria-pressed="'+kamOnly+'">Kamado</button>':'')+(S.airfryer?'<button type="button" class="chip" data-af="1" aria-pressed="'+afOnly+'">Air fryer</button>':'')+(S.petitdej?'<button type="button" class="chip" data-pdf="1" aria-pressed="'+pdOnly+'">Petits-déj</button>':'')+'</div>';
+  if(!list.length)h+='<div class="empty"><div class="e">🔎</div><b>Aucune recette</b>Essaie un autre mot ou retire un filtre.</div>';
+  else{
+    var cur=null;h+='<ul class="list">';
+    list.forEach(function(r){
+      if(isort!=="az"&&r.w!==cur){cur=r.w;h+='<li class="eyebrow" style="margin:10px 0 0">Semaine '+r.w+' · '+fdate(r.dim)+'</li>'}
+      var on=sel.indexOf(r.id)>=0;
+      var nv=notes[r.id];
+      h+='<li class="lrow'+(on?" on":"")+(nv===-1?" bad":"")+'" data-open="'+r.id+'"><span class="lic" style="'+tileStyle(r)+'">'+esc(r.ico)+'</span><span class="ltx"><b>'+esc(r.nom)+'</b><span>'+(nv===1?"À refaire · ":nv===-1?"À ne pas refaire · ":"")+esc(regOf(r).l)+' · '+dur(totalOf(r))+(r.congel?" · se congèle":"")+'</span></span>'+
+        '<button type="button" class="star" data-star="'+r.id+'" aria-pressed="'+!!fav[r.id]+'" aria-label="Favori">'+(fav[r.id]?"★":"☆")+'</button>'+
+        '<button type="button" class="plus" data-tog="'+r.id+'" aria-pressed="'+on+'" aria-label="'+(on?"Retirer":"Ajouter")+'">'+(on?"✓":"+")+'</button></li>';
+    });
+    h+='</ul>';
+  }
+  var focus=document.activeElement&&document.activeElement.id==="iq",pos=focus?document.activeElement.selectionStart:0;
+  el.innerHTML=h;
+  if(focus){var i=$("iq");i.focus();try{i.setSelectionRange(pos,pos)}catch(e){}}
+}
+
+/* ---------- Rendu : Courses ---------- */
+function emptySel(what){return '<div class="empty"><div class="e">🧺</div><b>Aucun plat choisi</b>Choisis tes plats dans la proposition de la semaine ou dans l\'index, '+what+'<div class="row" style="justify-content:center;margin-top:14px"><button class="btn small" type="button" data-view="semaine">Proposition de la semaine</button><button class="btn small ghost" type="button" data-view="recettes">Index</button></div></div>'}
+function itemHTML(e){var on=!!chk[e.k];
+  return '<label class="item'+(on?" done":"")+'"><input type="checkbox" data-chk="'+esc(e.k)+'"'+(on?" checked":"")+'><span class="nm">'+esc(e.n)+'<small>'+esc(e.from.join(" · "))+'</small></span><span class="qt">'+esc(qty(e.q,e.u,true))+'</span></label>'}
+function renderCourses(){
+  var el=$("v-courses");
+  var h='<h2 class="title">Liste de courses</h2>';
+  if(!sel.length){el.innerHTML=h+emptySel("la liste se remplit toute seule.");return}
+  var items=shopping(sel),main=items.filter(function(e){return !e.pl}),pan=items.filter(function(e){return e.pl});
+  var left=main.filter(function(e){return !chk[e.k]}).length;
+  h+='<p class="lede">'+left+' article'+(left>1?"s":"")+' à prendre · '+platsSel().length+' plat'+(platsSel().length>1?"s":"")+' de '+S.port+' portions'+(sel.length>platsSel().length?' + petits-déjeuners':'')+'</p><div class="forbar">'+sel.map(function(id){var r=R[id];return '<span class="pill" data-open="'+id+'" style="cursor:pointer">'+esc(r.ico)+' '+esc(r.court)+'</span>'}).join("")+'</div>';
+  RAY.forEach(function(ry){var its=main.filter(function(e){return e.r===ry[0]});if(!its.length)return;
+    its.sort(function(a,b){return a.n.localeCompare(b.n,"fr")});
+    var n=its.filter(function(e){return !chk[e.k]}).length;
+    h+='<div class="ray"><h4><span>'+esc(ry[1])+'</span><span>'+(n?n:"✓")+'</span></h4><div class="items">'+its.map(itemHTML).join("")+'</div></div>'});
+  h+='<div class="ray"><h4><span>À ajouter</span></h4><div class="items" id="extras">'+extra.map(function(x,i){return '<label class="item'+(x.c?" done":"")+'"><input type="checkbox" data-xchk="'+i+'"'+(x.c?" checked":"")+'><span class="nm">'+esc(x.t)+'</span><button type="button" class="xdel" data-xdel="'+i+'" aria-label="Supprimer">✕</button></label>'}).join("")+'</div>'+
+    '<form class="addrow" id="addForm"><input id="addIn" placeholder="Pain, fruits, café…" autocomplete="off"><button class="btn small" type="submit">Ajouter</button></form></div>';
+  if(pan.length)h+='<p class="basics">Non listés, supposés à la maison : '+esc(pan.map(function(e){return e.n}).sort(function(a,b){return a.localeCompare(b,"fr")}).join(", "))+'.</p>';
+  h+='<div class="tools"><button class="btn small" type="button" data-act="copy">Copier la liste</button><button class="btn small ghost" type="button" data-act="uncheck">Tout décocher</button><button class="btn small ghost" type="button" data-act="clearsel">Vider la sélection</button></div>';
+  el.innerHTML=h;
+}
+function listText(){
+  var items=shopping(sel),out=["Courses · "+sel.map(function(id){return R[id].court}).join(", "),""];
+  RAY.forEach(function(ry){var its=items.filter(function(e){return e.r===ry[0]&&!e.pl&&!chk[e.k]});if(!its.length)return;
+    out.push(ry[1].toUpperCase());its.forEach(function(e){out.push("- "+e.n+(e.q?" : "+qty(e.q,e.u,true):""))});out.push("")});
+  var ex=extra.filter(function(x){return !x.c});if(ex.length){out.push("À AJOUTER");ex.forEach(function(x){out.push("- "+x.t)});out.push("")}
+  return out.join("\n").trim();
+}
+
+/* ---------- Rendu : Dimanche ---------- */
+function renderCuisine(){
+  var el=$("v-cuisine"),h='<h2 class="title">Le plan du dimanche</h2>';
+  if(!sel.length){el.innerHTML=h+emptySel("le plan de cuisine se calcule tout seul.");return}
+  var pl=plan(sel),M=meals(sel);
+  var nboxes=Math.ceil(platsSel().length*S.port/S.pers)+sel.length-platsSel().length;
+  h+='<p class="lede">Ordre optimisé : la mise en place est regroupée, ce qui cuit longtemps part en premier, le reste se fait pendant les cuissons.</p>';
+  h+='<div class="stats"><div class="stat"><b>'+clock(0)+'</b><span>Début</span></div><div class="stat"><b>'+clock(pl.end)+'</b><span>Fin</span></div><div class="stat"><b>'+dur(pl.act/Math.max(1,S.cooks))+'</b><span>Actif</span></div><div class="stat"><b>'+nboxes+'</b><span>Boîtes</span></div></div>';
+  // Gantt
+  var E=Math.max(pl.end,1),rows=[{l:"Mise en place",c:"#8a7d72",f:function(x){return x.n.kind==="prep"}}];
+  if(pl.out.some(function(x){return x.n.kind==="kam"}))rows.push({l:"Kamado",c:"#3a3a3a",f:function(x){return x.n.kind==="kam"}});
+  pl.recs.forEach(function(r){rows.push({l:r.court,c:r._c,f:function(x){return x.n.r===r}})});
+  h+='<details class="gwrap"><summary>Vue d\'ensemble de la session</summary><div class="gantt">'+rows.map(function(rw){return '<div class="grow"><span class="glab" style="color:'+rw.c+'">'+esc(rw.l)+'</span><div class="gtrack">'+
+    pl.out.filter(rw.f).map(function(x){return '<span class="gbar'+(x.n.a?"":" p")+'" style="--c:'+rw.c+';left:'+(x.s/E*100)+'%;width:'+Math.max(.6,x.n.m/E*100)+'%"></span>'}).join("")+'</div></div>'}).join("");
+  var step=E>300?60:30,ax='';for(var t=0;t<=E;t+=step)ax+='<span style="left:'+(t/E*100)+'%">'+hm(t)+'</span>';
+  h+='<div class="gaxis">'+ax+'</div><div class="glegend"><span><i></i>tu cuisines</span><span><i class="p"></i>ça cuit tout seul</span></div></div></details>';
+  // Timeline
+  var items=pl.out.map(function(x){return{s:x.s,x:x}}).concat(pl.rem.map(function(r){return{s:r.s,rem:r}})).sort(function(a,b){return a.s-b.s||(a.rem?-1:0)-(b.rem?-1:0)||(b.x&&b.x.n.a)-(a.x&&a.x.n.a)});
+  var ndone=pl.out.filter(function(x){return x.n.a&&done[x.n.id]}).length,nact=pl.out.filter(function(x){return x.n.a}).length;
+  h+='<h3 class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">Étape par étape <span style="font-family:var(--body);font-size:.85rem;color:var(--soft);font-weight:500">'+ndone+' / '+nact+' faites</span></h3><ul class="tl">';
+  items.forEach(function(it){
+    if(it.rem){h+='<li class="st rem"><span class="h">'+clock(it.s)+'</span><span class="dot"></span><div class="box"><div class="tx">'+(it.rem.k==="airfryer"?'Préchauffer l\'air fryer à '+it.rem.T+' °C':'Allumer le four à '+it.rem.T+' °C')+'</div></div></li>';return}
+    var x=it.x,n=x.n,c=n.kind==="prep"?"#8a7d72":n.kind==="kam"?"#3a3a3a":n.r._c,who=n.kind==="prep"?"Mise en place":n.kind==="kam"?"Kamado":n.r.court,tx,sub="";
+    if(n.kind==="prep"){
+      tx=esc(n.act)+' · <span class="q">'+esc(n.obj)+' '+esc(qty(n.q,n.u,false))+'</span>';
+      if(n.parts.length>1)sub=n.parts.map(function(p){return esc(p.r.court)+" "+esc(qty(p.q,n.u,false))}).join(" · ");
+    }else tx=esc(n.t);
+    if(n.a)sub=(sub?sub+" · ":"")+n.m+" min";
+    else sub=(n.p==="four"?"Four "+n.T+" °C · ":n.p==="kamado"?"Kamado "+n.T+" °C · ":n.p==="airfryer"?"Air fryer "+n.T+" °C · ":"")+"cuit seul jusqu'à "+clock(x.e);
+    var tm=(n.m>=3&&n.kind!=="prep")?tbtn(who+" · "+(n.kind==="cool"?"tiédir":n.kind==="box"?"boîtes":(n.t||"").split(/[.,:;]/)[0].slice(0,40)),n.m,c):"";
+    var d=n.a&&done[n.id];
+    h+='<li class="st'+(n.a?"":" p")+(d?" done":"")+'" style="--c:'+c+'"><span class="h">'+clock(x.s)+'</span><span class="dot"></span><div class="box"'+(n.a?' data-done="'+esc(n.id)+'"':'')+'>'+(n.a?'<span class="check"></span>':'')+'<div class="who">'+esc(who)+'</div><div class="tx">'+tx+'</div><div class="sub">'+sub+'</div>'+tm+'</div></li>';
+  });
+  h+='<li class="st" style="--c:var(--ok)"><span class="h">'+clock(pl.end)+'</span><span class="dot"></span><div class="box" style="cursor:default"><div class="tx"><b>Terminé.</b> Tout est en boîtes.</div></div></li></ul>';
+  if(ndone)h+='<div class="tools"><button class="btn small ghost" type="button" data-act="resetdone">Remettre le plan à zéro</button></div>';
+  // Semaine
+  h+='<h3 class="section-h">Les repas de la semaine</h3><div class="week"><div class="wd hd"><div></div><div>Midi</div><div>Soir</div></div>';
+  var maxd=Math.max(S.soirs,S.midis);
+  for(var d=1;d<=maxd;d++){
+    h+='<div class="wd"><div class="d">'+JOURS[d-1]+'</div>';
+    ["midi","soir"].forEach(function(k){var s=M.slots.filter(function(z){return z.d===d&&z.k===k})[0];
+      if(!s){h+='<div></div>';return}
+      if(!s.p){h+='<div><span class="meal warn"><span>—</span><span>À prévoir<small>plus assez de portions</small></span></span></div>';return}
+      h+='<div><span class="meal'+(s.risky?" warn":"")+'" data-open="'+s.p.r.id+'" style="cursor:pointer"><span class="e">'+esc(s.p.r.ico)+'</span><span>'+esc(s.p.r.court)+(s.frozen?'<small>congelé · sortir la veille</small>':s.risky?'<small>au-delà de '+s.p.r.frigo+' j</small>':(S.acc&&s.p.r.acc&&!s.p.r.acc.dim?'<small class="ac">+ '+esc(s.p.r.acc.nom.toLowerCase())+'</small>':''))+'</span></span></div>'});
+    h+='</div>';
+  }
+  h+='</div>';
+  var lefts=M.pool.filter(function(p){return p.left>0.01});
+  var frozenRecs=[];M.slots.forEach(function(s){if(s.frozen&&frozenRecs.indexOf(s.p.r)<0)frozenRecs.push(s.p.r)});
+  h+='<p class="note">Besoin : <b>'+String(M.need).replace(".",",")+' portions</b> ('+S.soirs+' soirs, '+S.midis+' midis, '+S.pers+' pers.'+(M.cf?' + l\'enfant, environ '+(M.cf===0.25?"¼":M.cf===0.5?"½":"¾")+' de portion':'')+') · cuisiné : <b>'+M.have+'</b>.</p>';
+  var pdSel=sel.map(function(id){return R[id]}).filter(function(r){return r&&isPD(r)});
+  if(pdSel.length)h+='<p class="note">Petits-déjeuners : '+pdSel.map(function(r){return '<b>'+esc(r.court)+'</b> ('+r.base+' parts, '+(r.frigo>=14?"bocal "+Math.round(r.frigo/7)+" semaines":"frigo "+r.frigo+" j")+')'}).join(", ")+'.</p>';
+  if(frozenRecs.length)h+='<div class="callout">Dès dimanche, congeler les portions de '+frozenRecs.map(function(r){return "<b>"+esc(r.court)+"</b>"}).join(", ")+' prévues en fin de semaine (au-delà de leur durée au frigo), et les sortir au frigo la veille.</div>';
+  if(M.have<M.need)h+='<div class="callout">Il manque '+(M.need-M.have)+' portions : augmente les portions par plat dans les réglages, ou ajoute un 4ᵉ plat.</div>';
+  else if(lefts.length)h+='<p class="note">En plus : '+lefts.map(function(p){return esc(p.r.court)+" ("+frac(p.left)+" portion"+(p.left>1?"s":"")+")"}).join(", ")+(lefts.some(function(p){return p.r.congel})?" — direction le congélateur.":".")+'</p>';
+  el.innerHTML=h;
+}
+
+/* ---------- Feuille recette ---------- */
+function openRecipe(id){
+  var r=R[id];if(!r)return;var on=sel.indexOf(id)>=0,k=f(r);
+  var main=r.ing.filter(function(i){return !i.pl}),pan=r.ing.filter(function(i){return i.pl});
+  var h='<div class="shead"><div class="tile" style="'+tileStyle(r)+'"><span class="rtag">'+esc(regOf(r).l)+'</span><span class="e">'+esc(r.ico)+'</span></div><button class="sclose" type="button" data-close="1" aria-label="Fermer">✕</button></div><div class="sbody">'+
+    '<div class="eyebrow">Semaine '+r.w+'</div><h2>'+esc(r.nom)+'</h2>'+(r.src?'<p class="src">'+esc(r.src)+'</p>':'')+'<p class="lede">'+esc(r.desc)+'</p>'+
+    '<div class="meta">'+(r.prot?'<span class="pill prot">≈ '+protOf(r)+' g protéines / portion</span>':'')+'<span class="pill">'+(isPD(r)?r.base+' parts':S.port+' portions')+'</span><span class="pill">'+dur(activeOf(r))+' actif</span><span class="pill">'+dur(totalOf(r))+' en tout</span><span class="pill">frigo '+r.frigo+' jours</span><span class="pill ice">'+(r.congel?"se congèle":"ne se congèle pas")+'</span></div>'+
+    '<h3>Ingrédients · '+(isPD(r)?r.base+' parts':S.port+' portions')+'</h3><ul class="ings">'+main.map(function(i){return '<li><span>'+esc(i.n)+'</span><span>'+esc(qty(i.q*k,i.u,false))+'</span></li>'}).join("")+pan.map(function(i){return '<li class="pl"><span>'+esc(i.n)+'</span><span>'+esc(qty(i.q*k,i.u,false))+'</span></li>'}).join("")+'</ul>';
+  var A=S.acc&&r.acc?r.acc:null,E=eff(r);
+  if(A)h+='<h3>Accompagnement · '+esc(A.nom)+'</h3><ul class="ings">'+(A.ing||[]).map(function(i){return '<li><span>'+esc(i.n)+'</span><span>'+esc(qty(i.q*k,i.u,false))+'</span></li>'}).join("")+'</ul>'+(A.soir?'<p class="note">Le soir du repas'+(A.m?" ("+A.m+" min)":"")+' : '+esc(A.soir)+'</p>'+(A.m>=3?tbtn(A.nom,A.m,regOf(r).c):''):A.dim?'<p class="note">Préparé le dimanche avec le plat (étapes ci-dessous).</p>':'');
+  if(r.boost)h+='<h3>Version sportive · +'+r.boost.g+' g de protéines / portion</h3><div class="tips"><div>'+esc(r.boost.t)+((r.boost.ing||[]).length?'<br><small>'+esc(r.boost.ing.map(function(i){return i.n+" "+qty(i.q*k,i.u,false)}).join(" · "))+'</small>':'')+'<br><small>'+(S.sport?'Incluse dans la liste de courses (réglage « Version sportive » activé).':'Active « Version sportive » dans les réglages pour l\'ajouter aux courses.')+'</small></div></div>';
+  if(E.prep.length)h+='<h3>Mise en place</h3><div class="preps">'+E.prep.map(function(p){return '<div><b>'+esc(p.a)+'</b> · '+esc(p.x)+' '+esc(qty(p.q*k,p.u||"",false))+'</div>'}).join("")+'</div>';
+  h+='<h3>Préparation</h3><ol class="steps">'+E.etapes.map(function(s){return '<li>'+esc(s.t)+'<small>'+(s.a?"":"cuisson seule · ")+dur(s.m)+(s.p==="four"?" · four "+s.T+" °C":s.p==="kamado"?" · kamado "+s.T+" °C":s.p==="airfryer"?" · air fryer "+s.T+" °C":"")+'</small>'+(s.m>=3?tbtn(r.court+" · "+s.t.split(/[.,:;]/)[0].slice(0,40),s.m,regOf(r).c):'')+'</li>'}).join("")+'<li>Laisser tiédir, répartir en boîtes, étiqueter.<small>'+(r.congel?"Frigo "+r.frigo+" jours, ou congélateur jusqu'à 3 mois":"Frigo "+r.frigo+" jours")+'</small></li></ol>';
+  h+='<div class="tips">'+(r.servir?'<div><b>Servir avec</b>'+esc(r.servir)+'</div>':'')+(r.rechauf?'<div><b>Réchauffer</b>'+esc(r.rechauf)+'</div>':'')+(r.astuce?'<div><b>Astuce</b>'+esc(r.astuce)+'</div>':'')+'</div>';
+  if(S.enfant&&ageM()!=null)h+='<h3>Pour l\'enfant · '+esc(ageTxt())+'</h3><ul class="kid">'+childTips(r).map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul>';
+  var nv=notes[id];
+  h+='<h3>Ton avis</h3><div class="rate"><button type="button" class="g" data-note="'+id+'" data-v="1" aria-pressed="'+(nv===1)+'">À refaire</button><button type="button" class="b" data-note="'+id+'" data-v="-1" aria-pressed="'+(nv===-1)+'">À ne pas refaire</button></div><p class="note">Tes avis orientent les propositions des semaines suivantes.</p>';
+  h+='<div class="sactions"><button class="btn'+(on?" ghost":"")+'" type="button" data-tog="'+id+'" data-keep="1">'+(on?"Retirer de ma semaine":"+ Ajouter à ma semaine")+'</button><button class="btn ghost" type="button" data-star="'+id+'" style="flex:0 0 auto" aria-label="Favori">'+(fav[id]?"★":"☆")+'</button></div></div>';
+  showSheet(h,id);
+}
+var sheetId=null;
+function showSheet(h,id){$("sheetIn").innerHTML='<div class="grab"></div>'+h;sheetId=id||null;$("sheet").scrollTop=0;$("sheet").classList.add("open");$("shade").classList.add("open");document.body.classList.add("lock")}
+function closeSheet(){$("sheet").classList.remove("open");$("shade").classList.remove("open");document.body.classList.remove("lock");sheetId=null}
+
+/* ---------- Réglages ---------- */
+var SETS=[["pers","Personnes",1,6,"par repas"],["port","Portions par plat",2,12,"quantités recalculées"],["soirs","Soirs à couvrir",0,7,"du lundi au…"],["midis","Midis à couvrir",0,7,"du lundi au…"],["cooks","En cuisine",1,2,"cuisiniers en même temps"],["feux","Feux",2,6,"plaques disponibles"],["oven","Four",1,2,"plats en même temps"],["acc","Accompagnements",0,1,"riz, salade… dans les courses"],["sport","Version sportive",0,1,"plus de protéines dans chaque plat"],["kamado","Kamado / barbecue",0,1,"recettes de cuisson lente au kamado"],["airfryer","Air fryer",0,1,"recettes et réchauffage à l'air fryer"],["enfant","Enfant à table",0,1,"conseils d'adaptation par recette"],["petitdej","Petits-déjeuners",0,1,"2 recettes à préparer d'avance chaque semaine"]];
+function outv(k){return k==="acc"||k==="sport"||k==="kamado"||k==="airfryer"||k==="enfant"||k==="petitdej"?(S[k]?"oui":"non"):S[k]}
+function openSettings(){
+  var h='<div class="sbody" style="padding-top:18px"><h2>Réglages</h2><p class="lede">Ils s\'appliquent aux quantités, à la liste de courses et au plan.</p><div style="margin-top:10px">'+
+  SETS.map(function(s){return '<div class="set"><label>'+s[1]+'<small>'+s[4]+'</small></label><div class="step"><button type="button" data-inc="'+s[0]+'" data-d="-1" aria-label="Moins">−</button><output id="o_'+s[0]+'">'+outv(s[0])+'</output><button type="button" data-inc="'+s[0]+'" data-d="1" aria-label="Plus">+</button></div></div>'}).join("")+
+  '<div class="set"><label>Saison des propositions<small>auto : selon la date</small></label><select id="saisonIn">'+[["auto","Auto ("+saisLabel(curSaisonAuto())+")"]].concat(SAIS).map(function(z){return '<option value="'+z[0]+'"'+(S.saison===z[0]?" selected":"")+'>'+z[1]+'</option>'}).join("")+'</select></div>'+
+  (S.enfant?'<div class="set"><label>Naissance de l\'enfant<small>mois et année · '+esc(ageTxt())+'</small></label><input type="month" id="naisIn" value="'+esc(S.naissance)+'"></div>':'')+
+  '<div class="set"><label>Début de la session<small>dimanche</small></label><input type="time" id="startIn" value="'+esc(S.start)+'"></div></div>'+
+  '<div class="sactions"><button class="btn" type="button" data-close="1">OK</button><button class="btn ghost" type="button" data-act="defaults">Par défaut</button></div></div>';
+  showSheet(h,null);
+}
+
+/* ---------- Minuteurs : plusieurs en parallèle, gardés si la page se recharge, sonnerie à la fin ---------- */
+var CLK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>';
+function tbtn(label,min,c){return '<button type="button" class="tbtn" style="--c:'+esc(c||"")+'" data-timer="'+Math.round(min)+'" data-tl="'+esc(label)+'" data-tc="'+esc(c||"")+'">'+CLK+'Minuteur '+dur(min)+'</button>'}
+var T=(function(){
+  var list=LS.get("timers",[]),ac=null,wl=null,iv=null;
+  function save(){LS.set("timers",list)}
+  function audio(){try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume()}catch(e){}}
+  function beep(){if(!ac)return;try{var t=ac.currentTime;[0,.25,.5].forEach(function(o){var g=ac.createGain(),os=ac.createOscillator();os.type="sine";os.frequency.value=880;g.gain.setValueAtTime(0,t+o);g.gain.linearRampToValueAtTime(.35,t+o+.02);g.gain.linearRampToValueAtTime(0,t+o+.18);os.connect(g);g.connect(ac.destination);os.start(t+o);os.stop(t+o+.2)})}catch(e){}}
+  function wake(on){try{if(on&&!wl&&navigator.wakeLock)navigator.wakeLock.request("screen").then(function(w){wl=w},function(){});if(!on&&wl){wl.release();wl=null}}catch(e){}}
+  function fmt(ms){var s=Math.max(0,Math.ceil(ms/1000)),m=Math.floor(s/60),x=s%60;return (m>=60?Math.floor(m/60)+":"+(m%60<10?"0":"")+(m%60):m)+":"+(x<10?"0":"")+x}
+  function draw(){
+    var el=$("timers");
+    if(!list.length){el.hidden=true;el.innerHTML="";document.body.style.paddingTop="";wake(false);return}
+    el.hidden=false;var now=Date.now();
+    el.innerHTML=list.map(function(t){var left=t.end-now,ring=left<=0;
+      return '<div class="tchip'+(ring?" ring":"")+'" style="--c:'+esc(t.c||"#e0482c")+'"><div class="tt"><div class="tl">'+esc(t.label)+'</div><div class="tv">'+(ring?"Terminé":fmt(left))+'</div></div>'+
+        (ring?'<button type="button" data-tx="'+t.id+'" data-ta="ok">OK</button>':'<button type="button" data-tx="'+t.id+'" data-ta="plus">+1</button><button type="button" data-tx="'+t.id+'" data-ta="del" aria-label="Arrêter">✕</button>')+'</div>'}).join("");
+    document.body.style.paddingTop=el.offsetHeight+"px";
+  }
+  function tick(){
+    var now=Date.now(),changed=false;
+    list.forEach(function(t){if(t.end<=now){if(!t.rang){t.rang=1;changed=true;toast("Minuteur terminé : "+t.label);try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}
+      if((t.beeps||0)<20&&(now-t.end)/1000>=(t.beeps||0)*3){t.beeps=(t.beeps||0)+1;beep()}}});
+    if(changed)save();draw();
+    if(!list.length&&iv){clearInterval(iv);iv=null}
+  }
+  function run(){if(!iv)iv=setInterval(tick,1000);tick()}
+  function add(label,min,c){audio();list.push({id:String(Date.now())+Math.floor(Math.random()*1e4),label:label||"Minuteur",end:Date.now()+min*60000,c:c});save();wake(true);run();toast("Minuteur lancé : "+dur(min))}
+  function act(id,a){var t=list.filter(function(x){return x.id===id})[0];if(!t)return;
+    if(a==="plus"){t.end+=60000}else{list=list.filter(function(x){return x!==t})}save();run()}
+  if(list.length)run();
+  return{add:add,act:act};
+})();
+
+/* ---------- Navigation & évènements ---------- */
+function updateChrome(){
+  ["semaine","recettes","courses","cuisine"].forEach(function(v){$("v-"+v).hidden=v!==view});
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"),function(b){b.setAttribute("aria-selected",b.getAttribute("data-view")===view?"true":"false")});
+  var bar=$("selbar");
+  if(sel.length&&(view==="semaine"||view==="recettes")){
+    var pl=plan(sel);bar.hidden=false;
+    $("selIco").textContent=sel.map(function(id){return R[id].ico}).join("");
+    var np=platsSel().length,npd=sel.length-np;$("selTxt").innerHTML='<b>'+np+' plat'+(np>1?"s":"")+(npd?' + '+npd+' petit'+(npd>1?"s":"")+'-déj':'')+'</b> · '+np*S.port+' portions<br>'+dur(pl.end)+' en cuisine, fini vers '+clock(pl.end);
+  }else bar.hidden=true;
+  var b=$("bCourses");
+  if(sel.length){var n=shopping(sel).filter(function(e){return !e.pl&&!chk[e.k]}).length;b.hidden=!n;b.textContent=n}else b.hidden=true;
+  document.body.style.paddingBottom=bar.hidden?"":"calc(150px + env(safe-area-inset-bottom))";
+}
+function render(){
+  if(view==="semaine")renderSemaine();else if(view==="recettes")renderRecettes();else if(view==="courses")renderCourses();else renderCuisine();
+  updateChrome();
+}
+function go(v){view=v;save();render();window.scrollTo(0,0)}
+function toast(t){var el=$("toast");el.textContent=t;el.classList.add("on");clearTimeout(toast._t);toast._t=setTimeout(function(){el.classList.remove("on")},1800)}
+function toggle(id){var i=sel.indexOf(id);if(i>=0)sel.splice(i,1);else sel.push(id);cache={};save()}
+
+document.addEventListener("click",function(ev){
+  var t=ev.target,b;
+  if((b=t.closest("[data-close]"))||t.id==="shade"){closeSheet();render();return}
+  if((b=t.closest("[data-inc]"))){var k=b.getAttribute("data-inc"),s=SETS.filter(function(x){return x[0]===k})[0];
+    S[k]=Math.min(s[3],Math.max(s[2],S[k]+(+b.getAttribute("data-d"))));$("o_"+k).textContent=outv(k);cache={};save();if(k==="enfant")openSettings();render();return}
+  if((b=t.closest("[data-tog]"))){ev.stopPropagation();var id=b.getAttribute("data-tog");toggle(id);
+    if(b.hasAttribute("data-keep")){openRecipe(id);toast(sel.indexOf(id)>=0?"Ajouté à ta semaine":"Retiré")}render();return}
+  if((b=t.closest("[data-star]"))){ev.stopPropagation();var sid=b.getAttribute("data-star");if(fav[sid])delete fav[sid];else fav[sid]=1;save();if(sheetId===sid)openRecipe(sid);render();return}
+  if((b=t.closest("[data-trio]"))){sel=b.getAttribute("data-trio").split(",");cache={};save();render();toast("Trio choisi · liste de courses prête");return}
+  if((b=t.closest("[data-view]"))){closeSheet();go(b.getAttribute("data-view"));return}
+  if((b=t.closest("[data-reg]"))){reg=b.getAttribute("data-reg");ireg=null;save();render();return}
+  if((b=t.closest("[data-ireg]"))){ireg=b.getAttribute("data-ireg");render();return}
+  if((b=t.closest("[data-week]"))){weekN=+b.getAttribute("data-week");render();return}
+  if((b=t.closest("[data-fav]"))){favOnly=!favOnly;render();return}
+  if((b=t.closest("[data-sais]"))){isais=b.getAttribute("data-sais");render();return}
+  if((b=t.closest("[data-kam]"))){kamOnly=!kamOnly;render();return}
+  if((b=t.closest("[data-pdf]"))){pdOnly=!pdOnly;render();return}
+  if((b=t.closest("[data-soup]"))){soupOnly=!soupOnly;LS.set("soup",soupOnly);render();return}
+  if((b=t.closest("[data-af]"))){afOnly=!afOnly;render();return}
+  if((b=t.closest("[data-prot]"))){protOnly=!protOnly;LS.set("prot",protOnly);render();return}
+  if((b=t.closest("[data-notef]"))){var nf=b.getAttribute("data-notef");noteF=noteF===nf?"":nf;render();return}
+  if((b=t.closest("[data-note]"))){var rid=b.getAttribute("data-note"),v=+b.getAttribute("data-v");if(notes[rid]===v)delete notes[rid];else notes[rid]=v;save();openRecipe(rid);render();toast(notes[rid]===1?"Noté : à refaire":notes[rid]===-1?"Noté : à ne pas refaire":"Avis retiré");return}
+  if((b=t.closest("[data-sort]"))){isort=isort==="az"?"date":"az";render();return}
+  if((b=t.closest("[data-timer]"))){ev.stopPropagation();T.add(b.getAttribute("data-tl"),+b.getAttribute("data-timer"),b.getAttribute("data-tc"));return}
+  if((b=t.closest("[data-tx]"))){T.act(b.getAttribute("data-tx"),b.getAttribute("data-ta"));return}
+  if((b=t.closest("[data-done]"))){var nid=b.getAttribute("data-done");if(done[nid])delete done[nid];else done[nid]=1;save();render();return}
+  if((b=t.closest("[data-xdel]"))){ev.preventDefault();extra.splice(+b.getAttribute("data-xdel"),1);save();render();return}
+  if((b=t.closest("[data-act]"))){var a=b.getAttribute("data-act");
+    if(a==="copy"){var txt=listText();(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast("Liste copiée")},function(){var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Liste copiée")}catch(e){}ta.remove()})}
+    if(a==="uncheck"){chk={};extra.forEach(function(x){x.c=0});save();render()}
+    if(a==="resetdone"){done={};save();render()}
+    if(a==="clearsel"){sel=[];chk={};done={};cache={};save();render()}
+    if(a==="defaults"){S=Object.assign({},DEF);cache={};save();openSettings();render()}
+    return}
+  if((b=t.closest("[data-open]"))){openRecipe(b.getAttribute("data-open"));return}
+});
+document.addEventListener("change",function(ev){var t=ev.target;
+  if(t.hasAttribute("data-chk")){var k=t.getAttribute("data-chk");if(t.checked)chk[k]=1;else delete chk[k];save();render()}
+  if(t.hasAttribute("data-xchk")){var x=extra[+t.getAttribute("data-xchk")];if(x){x.c=t.checked?1:0;save();render()}}
+  if(t.id==="startIn"){S.start=t.value||"10:00";save();render()}
+  if(t.id==="naisIn"){S.naissance=t.value||S.naissance;save();openSettings();render()}
+  if(t.id==="saisonIn"){S.saison=t.value||"auto";save();render()}
+});
+document.addEventListener("input",function(ev){if(ev.target.id==="iq"){iq=ev.target.value;clearTimeout(renderRecettes._t);renderRecettes._t=setTimeout(render,150)}});
+document.addEventListener("submit",function(ev){if(ev.target.id==="addForm"){ev.preventDefault();var v=$("addIn").value.trim();if(v){extra.push({t:v,c:0});save();render();var i=$("addIn");if(i)i.focus()}}});
+document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&$("sheet").classList.contains("open")){closeSheet();render()}});
+$("openSet").addEventListener("click",openSettings);
+
+/* ---------- Chargement : un fichier data/sNN.js par semaine, par lots de 6 ---------- */
+function load(n){return new Promise(function(res){var s=document.createElement("script");s.src="data/s"+(n<10?"0":"")+n+".js";
+  s.onload=function(){res(BATCH.weeks.some(function(w){return w.n===n}))};s.onerror=function(){res(false)};document.head.appendChild(s)})}
+function batch(start){var ids=[];for(var i=0;i<6;i++)ids.push(start+i);
+  return Promise.all(ids.map(load)).then(function(ok){if(ok.some(Boolean)&&start<600)return batch(start+6)})}
+window.__bdd={plan:plan,meals:meals,shopping:shopping,qty:qty,rebuild:rebuild,render:render,go:go,get sel(){return sel},set sel(v){sel=v;cache={}}};
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+batch(1).then(function(){rebuild();
+  try{var wd=new Date().getDay();if(platsSel().length){if(wd===0)view="cuisine";else if((wd===5||wd===6)&&shopping(sel).some(function(e){return !e.pl&&!chk[e.k]}))view="courses";else view="semaine"}}catch(e){}
+  render();sync.start()});
+})();
+</script>
+</body>
+</html>
