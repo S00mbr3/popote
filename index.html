@@ -246,6 +246,7 @@ details.pantry .items{border-radius:0 0 14px 14px}
 .sactions{display:flex;gap:8px;margin-top:20px;position:sticky;bottom:0;background:var(--paper);padding:10px 0 4px}
 .sactions .btn{flex:1}
 .set{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--rule)}
+.set.col{flex-direction:column;align-items:stretch;gap:6px}.set.col input{width:100%;box-sizing:border-box}
 .set:first-of-type{border-top:0}
 .set label{font-weight:600}
 .set small{display:block;color:var(--soft);font-weight:400;font-size:.8rem}
@@ -253,7 +254,7 @@ details.pantry .items{border-radius:0 0 14px 14px}
 .step button{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--rule);background:var(--card);font-weight:700;font-size:1.1rem}
 .step output{min-width:36px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
 .set select{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--rule);border-radius:10px;padding:6px 8px;max-width:52%}
-.set input[type=month],.set input[type=time]{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--rule);border-radius:10px;padding:6px 8px}
+.set input[type=month],.set input[type=time],.set input[type=url],.set input[type=text]{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--rule);border-radius:10px;padding:6px 8px}
 .toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-size:.9rem;font-weight:600;opacity:0;transition:.2s;z-index:60;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%)}
 .tbtn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;border:1.5px solid var(--c,var(--accent));color:var(--c,var(--accent));background:transparent;border-radius:999px;padding:5px 11px;font-size:.8rem;font-weight:700}
@@ -378,16 +379,17 @@ function save(){LS.set("sel",sel);LS.set("reg",reg);LS.set("fav",fav);LS.set("ch
 /* ---------- Synchronisation (capacité db) : la sélection, les cases cochées et les notes
    suivent d'un appareil à l'autre ; les notes sont lues par la tâche du jeudi. ---------- */
 var sync=(function(){
-  var db=null,refs={},last={},busy={},again={},timer=null,ready=false;
+  var db=null,refs={},last={},busy={},again={},timer=null,ready=false,pend=false,mode="";
+  function canon(v){if(Array.isArray(v))return "["+v.map(canon).join(",")+"]";if(v&&typeof v==="object")return "{"+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+":"+canon(v[k])}).join(",")+"}";return JSON.stringify(v)}
   function menuBody(){return{sel:sel,chk:chk,extra:extra,done:done,fav:fav,S:S}}
   function notesBody(){var r={};Object.keys(notes).forEach(function(k){if(notes[k]&&R[k])r[k]={v:notes[k],nom:R[k].nom}});return{r:r}}
   function write(name,body){
-    var js=JSON.stringify(body);if(js===last[name])return;
+    var js=canon(body);if(js===last[name])return;
     if(busy[name]){again[name]=1;return}
     busy[name]=1;last[name]=js;
-    refs[name].set(JSON.parse(js)).catch(function(){last[name]=null}).then(function(){busy[name]=0;if(again[name]){again[name]=0;write(name,name==="menu"?menuBody():notesBody())}});
+    refs[name].set(JSON.parse(JSON.stringify(body))).catch(function(){last[name]=null}).then(function(){busy[name]=0;if(again[name]){again[name]=0;write(name,name==="menu"?menuBody():notesBody())}});
   }
-  function push(){if(!ready)return;clearTimeout(timer);timer=setTimeout(function(){write("menu",menuBody());write("notes",notesBody())},700)}
+  function push(){if(!ready)return;clearTimeout(timer);pend=true;timer=setTimeout(function(){pend=false;write("menu",menuBody());write("notes",notesBody())},700)}
   function applyMenu(d){
     if(Array.isArray(d.sel))sel=d.sel.filter(function(id){return !Object.keys(R).length||R[id]});
     if(d.chk&&typeof d.chk==="object")chk=Object.assign({},d.chk);
@@ -396,19 +398,40 @@ var sync=(function(){
     if(d.fav&&typeof d.fav==="object")fav=Object.assign({},d.fav);
     if(d.S&&typeof d.S==="object")Object.keys(DEF).forEach(function(k){if(d.S[k]!=null&&typeof d.S[k]===typeof DEF[k])S[k]=d.S[k]});
   }
+  /* Supabase (facultatif, hors Claude) : une ligne par document dans la table popote_state,
+     lue toutes les 20 s et au retour sur l'appli, écrite par l'API REST avec la clé publique. */
+  function supaDb(cfg){
+    var base=cfg.url.replace(/\/+$/,"")+"/rest/v1/popote_state",H={apikey:cfg.key,Authorization:"Bearer "+cfg.key,"Content-Type":"application/json"};
+    return{doc:function(path){
+      var id=cfg.foyer+"/"+path,inflight=0;
+      return{
+        set:function(data){inflight++;return fetch(base,{method:"POST",headers:Object.assign({Prefer:"resolution=merge-duplicates,return=minimal"},H),body:JSON.stringify({id:id,data:data,updated_at:new Date().toISOString()})})
+          .then(function(r){inflight--;setStat(r.ok?"ok":"err");if(!r.ok)throw new Error(r.status)},function(e){inflight--;setStat("err");throw e})},
+        onSnapshot:function(cb){
+          function poll(){if(document.hidden)return;fetch(base+"?select=data&id=eq."+encodeURIComponent(id),{headers:H}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})
+            .then(function(rows){setStat("ok");var d=rows&&rows[0]?rows[0].data:null;cb({exists:!!d,data:function(){return d},metadata:{hasPendingWrites:inflight>0}})},function(){setStat("err")})}
+          poll();setInterval(poll,20000);document.addEventListener("visibilitychange",function(){if(!document.hidden)poll()});
+        }}}}
+  }
+  var stat="";function setStat(x){stat=x}
+  function status(){return mode==="supabase"?(stat==="err"?"Supabase : erreur de connexion":stat==="ok"?"Supabase : synchronisé":"Supabase : connexion…"):mode==="claude"?"Synchronisé par Claude":"Non synchronisé (cet appareil seulement)"}
   function start(){
-    if(!(window.claude&&typeof window.claude.use==="function"))return;
-    window.claude.use("db").then(function(d){
+    try{var m=location.hash.match(/^#supa=(.+)$/);if(m){var c=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));if(c.url&&c.key&&c.foyer)LS.set("supa",{url:c.url,key:c.key,foyer:c.foyer});history.replaceState(null,"",location.pathname+location.search)}}catch(e){}
+    var cfg=LS.get("supa",null);
+    var hasClaude=window.claude&&typeof window.claude.use==="function";
+    var getDb=hasClaude?window.claude.use("db"):(cfg&&cfg.url&&cfg.key&&cfg.foyer?Promise.resolve(supaDb(cfg)):null);
+    if(!getDb)return;mode=hasClaude?"claude":"supabase";
+    getDb.then(function(d){
       if(!d)return;db=d;
       try{refs.menu=db.doc("state/menu");refs.notes=db.doc("state/notes")}catch(e){return}
       var first={menu:1,notes:1};
       function sub(name){
         refs[name].onSnapshot(function(snap){
-          if(snap.metadata&&snap.metadata.hasPendingWrites)return;
+          if(snap.metadata&&snap.metadata.hasPendingWrites||pend||busy[name])return;
           var data=snap.exists?snap.data():null;
           if(first[name]){first[name]=0;if(!data){ready=true;write(name,name==="menu"?menuBody():notesBody());return}}
           if(!data)return;
-          var js=JSON.stringify(data);if(js===last[name])return;last[name]=js;
+          var js=canon(data);if(js===last[name])return;last[name]=js;
           if(name==="menu")applyMenu(data);
           else{var n={};Object.keys(data.r||{}).forEach(function(k){var v=data.r[k]&&data.r[k].v;if(v===1||v===-1)n[k]=v});notes=n}
           ready=true;cache={};LS.set("sel",sel);LS.set("chk",chk);LS.set("extra",extra);LS.set("done",done);LS.set("fav",fav);LS.set("notes",notes);LS.set("set",S);
@@ -418,7 +441,7 @@ var sync=(function(){
       sub("menu");sub("notes");
     },function(){});
   }
-  return{push:push,start:start};
+  return{push:push,start:start,status:status,mode:function(){return mode}};
 })();
 function rebuild(){
   R={};ALL=[];cache={};
@@ -775,8 +798,20 @@ function openSettings(){
   '<div class="set"><label>Saison des propositions<small>auto : selon la date</small></label><select id="saisonIn">'+[["auto","Auto ("+saisLabel(curSaisonAuto())+")"]].concat(SAIS).map(function(z){return '<option value="'+z[0]+'"'+(S.saison===z[0]?" selected":"")+'>'+z[1]+'</option>'}).join("")+'</select></div>'+
   (S.enfant?'<div class="set"><label>Naissance de l\'enfant<small>mois et année · '+esc(ageTxt())+'</small></label><input type="month" id="naisIn" value="'+esc(S.naissance)+'"></div>':'')+
   '<div class="set"><label>Début de la session<small>dimanche</small></label><input type="time" id="startIn" value="'+esc(S.start)+'"></div></div>'+
-  '<div class="sactions"><button class="btn" type="button" data-close="1">OK</button><button class="btn ghost" type="button" data-act="defaults">Par défaut</button></div></div>';
+  '<div class="sactions"><button class="btn" type="button" data-close="1">OK</button><button class="btn ghost" type="button" data-act="defaults">Par défaut</button></div>'+supaHTML()+'</div>';
   showSheet(h,null);
+}
+
+function supaHTML(){
+  var st='<p class="lede" style="margin-top:4px">'+esc(sync.status())+'</p>';
+  if(sync.mode()==="claude")return '<h2 style="margin-top:22px">Synchronisation</h2>'+st;
+  var c=LS.get("supa",null)||{};
+  return '<h2 style="margin-top:22px">Synchronisation Supabase <small style="font-weight:400">facultatif</small></h2>'+st+
+  '<p class="lede">Pour retrouver sélection, courses cochées et notes sur plusieurs téléphones. Un projet Supabase gratuit suffit : voir le README du dépôt pour la table à créer.</p>'+
+  '<div class="set col"><label>URL du projet<small>https://xxxx.supabase.co</small></label><input type="url" id="supaUrl" value="'+esc(c.url||"")+'" placeholder="https://xxxx.supabase.co" autocomplete="off"></div>'+
+  '<div class="set col"><label>Clé publique (anon)<small>Project Settings › API</small></label><input type="text" id="supaKey" value="'+esc(c.key||"")+'" autocomplete="off" spellcheck="false"></div>'+
+  '<div class="set col"><label>Code du foyer<small>le même sur chaque appareil, difficile à deviner</small></label><input type="text" id="supaFoyer" value="'+esc(c.foyer||("popote-"+Math.random().toString(36).slice(2,10)))+'" autocomplete="off" spellcheck="false"></div>'+
+  '<div class="sactions"><button class="btn" type="button" data-act="supasave">Activer</button>'+(c.url?'<button class="btn ghost" type="button" data-act="supalink">Copier le lien pour un autre appareil</button><button class="btn ghost" type="button" data-act="supaoff">Désactiver</button>':'')+'</div>';
 }
 
 /* ---------- Minuteurs : plusieurs en parallèle, gardés si la page se recharge, sonnerie à la fin ---------- */
@@ -832,6 +867,7 @@ function render(){
   updateChrome();
 }
 function go(v){view=v;save();render();window.scrollTo(0,0)}
+function copyText(txt,msg){(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast(msg)},function(){var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast(msg)}catch(e){}ta.remove()})}
 function toast(t){var el=$("toast");el.textContent=t;el.classList.add("on");clearTimeout(toast._t);toast._t=setTimeout(function(){el.classList.remove("on")},1800)}
 function toggle(id){var i=sel.indexOf(id);if(i>=0)sel.splice(i,1);else sel.push(id);cache={};save()}
 
@@ -867,6 +903,11 @@ document.addEventListener("click",function(ev){
     if(a==="uncheck"){chk={};extra.forEach(function(x){x.c=0});save();render()}
     if(a==="resetdone"){done={};save();render()}
     if(a==="clearsel"){sel=[];chk={};done={};cache={};save();render()}
+    if(a==="supasave"){var u=($("supaUrl").value||"").trim(),k=($("supaKey").value||"").trim(),fo=($("supaFoyer").value||"").trim();
+      if(!/^https:\/\/[^\s]+$/.test(u)||!k||fo.length<6){toast("URL, clé et code du foyer (6 caractères au moins) sont nécessaires");return}
+      LS.set("supa",{url:u,key:k,foyer:fo});location.reload();return}
+    if(a==="supaoff"){try{localStorage.removeItem("bdd_supa")}catch(e){}location.reload();return}
+    if(a==="supalink"){var cf=LS.get("supa",null);if(cf){var lk=location.origin+location.pathname+"#supa="+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(cf)))));copyText(lk,"Lien copié : ouvre-le sur l'autre appareil")}return}
     if(a==="defaults"){S=Object.assign({},DEF);cache={};save();openSettings();render()}
     return}
   if((b=t.closest("[data-open]"))){openRecipe(b.getAttribute("data-open"));return}
@@ -888,7 +929,7 @@ function load(n){return new Promise(function(res){var s=document.createElement("
   s.onload=function(){res(BATCH.weeks.some(function(w){return w.n===n}))};s.onerror=function(){res(false)};document.head.appendChild(s)})}
 function batch(start){var ids=[];for(var i=0;i<6;i++)ids.push(start+i);
   return Promise.all(ids.map(load)).then(function(ok){if(ok.some(Boolean)&&start<600)return batch(start+6)})}
-window.__bdd={plan:plan,meals:meals,shopping:shopping,qty:qty,rebuild:rebuild,render:render,go:go,get sel(){return sel},set sel(v){sel=v;cache={}}};
+window.__bdd={save:save,openSettings:openSettings,plan:plan,meals:meals,shopping:shopping,qty:qty,rebuild:rebuild,render:render,go:go,get sel(){return sel},set sel(v){sel=v;cache={}}};
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 batch(1).then(function(){rebuild();
   try{var wd=new Date().getDay();if(platsSel().length){if(wd===0)view="cuisine";else if((wd===5||wd===6)&&shopping(sel).some(function(e){return !e.pl&&!chk[e.k]}))view="courses";else view="semaine"}}catch(e){}

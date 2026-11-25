@@ -1,5 +1,5 @@
 /* Hors ligne : l'appli et les icônes en cache ; les semaines (data/) d'abord depuis le réseau pour voir les nouvelles, sinon depuis le cache. */
-const V = "popote-v1";
+const V = "popote-v2";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/favicon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
